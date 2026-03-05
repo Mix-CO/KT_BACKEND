@@ -29,9 +29,6 @@ public class Match {
     @ManyToOne
     private Field field;
 
-    @ManyToOne
-    private Referee referee;
-
     @Enumerated(EnumType.STRING)
     private MatchStatus status;
 
