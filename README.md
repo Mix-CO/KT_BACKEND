@@ -1,12 +1,8 @@
 # 📌 La Selección - KickTime Backend
 
----
-
 KickTime is a web platform that enables the management of university soccer tournaments, optimizing match scheduling through real-time availability and artificial intelligence.
 
 ## 👤 Developers
-
----
 
 - Sebastián Enrique Barros Barros
 - Lina Janeth Sanchez Forero
@@ -14,23 +10,13 @@ KickTime is a web platform that enables the management of university soccer tour
 
 ## 📑 Content Table
 
----
-
 ## 🏢 Project Architecture
-
----
 
 ## 📡 API Endpoints
 
----
-
 ### Data input & output
 
----
-
 ### 📟 HTTP Status Codes
-
----
 
 Common status codes returned by the API.
 
@@ -45,11 +31,7 @@ Common status codes returned by the API.
 
 ## Technologies
 
----
-
 ### Backend & Core
-
----
 
 ![Java](https://img.shields.io/badge/java-%23ED8B00.svg?style=for-the-badge&logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/spring-%236DB33F.svg?style=for-the-badge&logo=spring&logoColor=white)
@@ -57,13 +39,9 @@ Common status codes returned by the API.
 
 ### Database
 
----
-
 ![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white)
 
 ### DevOps & Infrastructure
-
----
 
 ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
 ![Azure](https://img.shields.io/badge/azure-%230072C6.svg?style=for-the-badge&logo=microsoftazure&logoColor=white)
@@ -71,33 +49,24 @@ Common status codes returned by the API.
 
 ### CI/CD & Quality Assurance
 
----
-
 ![GitHub Actions](https://img.shields.io/badge/github%20actions-%232671E5.svg?style=for-the-badge&logo=githubactions&logoColor=white)
 ![SonarQube](https://img.shields.io/badge/SonarQube-4E9BCD?style=for-the-badge&logo=sonarqube&logoColor=white)
 ![JaCoCo](https://img.shields.io/badge/JaCoCo-Coverage-green?style=for-the-badge)
 
 ### Documentation & Testing
 
----
-
 ![Swagger](https://img.shields.io/badge/-Swagger-%23Clojure?style=for-the-badge&logo=swagger&logoColor=white)
 ![Postman](https://img.shields.io/badge/Postman-FF6C37?style=for-the-badge&logo=postman&logoColor=white)
 
 ### Design
 
----
-
 ![Figma](https://img.shields.io/badge/figma-%23F24E1E.svg?style=for-the-badge&logo=figma&logoColor=white)
 
 ### Comunication & Project Management
 
----
-
 ![Microsoft Teams](https://img.shields.io/badge/Microsoft%20Teams-6264A7?style=for-the-badge&logo=microsoftteams&logoColor=white)
 ![Azure DevOps](https://img.shields.io/badge/Azure%20DevOps-0078D7?style=for-the-badge&logo=azuredevops&logoColor=white)
 
----
 ## 🌿 Branches Strategy & Structure
 
 This module follows a strict branching strategy based on Gitflow to ensure the ordered versioning,code quality and continous integration.
@@ -124,7 +93,6 @@ Used for new features or non-critical improvements.
 * 🧩 **Case:** strictly *camelCase* (lowercase with hyphens).
 * ✍️ **Descriptive:** Short and meaningful description.
 
----
 ### 📦 Release Branches
 Used for preparing a new production release. Follows [Semantic Versioning](https://semver.org/).
 **Format:**
@@ -132,7 +100,6 @@ Used for preparing a new production release. Follows [Semantic Versioning](https
 **Examples:**
 - `release/v1.0.0`
 - `release/v1.1.0-beta`
----
 
 ### 🚑 Hotfix Branches
 Used for urgent fixes in the production environment.
@@ -141,4 +108,15 @@ Used for urgent fixes in the production environment.
 **Examples:**
 - `hotfix/fixTokenExpiration`
 - `hotfix/securityPatch`
----
+
+### ✨ Commiting Structure
+
+Commits follow this structure depending on the type of work:
+
+**Feature**
+`Feature - <FeatureName>: <Short description>`
+> Example: `Feature - User Authentication: Implement JWT login flow`
+
+**User Story**
+`HU - <HUCode> - <HUName>: <Short description>`
+> Example: `HU - 012 - User Profile Management: Add avatar upload endpoint`
