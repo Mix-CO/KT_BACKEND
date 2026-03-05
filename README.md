@@ -119,4 +119,4 @@ Commits follow this structure depending on the type of work:
 
 **User Story**
 `HU - <HUCode> - <HUName>: <Short description>`
-> Example: `HU - 012 - User Profile Management: Add avatar upload endpoint`
+> Example: `US - 012 - User Profile Management: Add avatar upload endpoint`
