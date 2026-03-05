@@ -118,5 +118,5 @@ Commits follow this structure depending on the type of work:
 > Example: `Feature - User Authentication: Implement JWT login flow`
 
 **User Story**
-`HU - <HUCode> - <HUName>: <Short description>`
+`US - <HUCode> - <HUName>: <Short description>`
 > Example: `US - 012 - User Profile Management: Add avatar upload endpoint`
