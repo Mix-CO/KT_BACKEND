@@ -1,6 +1,8 @@
 package com.kicktime.backend.api.authentication;
 
+import com.kicktime.backend.domain.model.dto.request.LoginRequestDTO;
 import com.kicktime.backend.domain.model.dto.request.RegisterRequestDTO;
+import com.kicktime.backend.domain.model.dto.response.LoginResponseDTO;
 import com.kicktime.backend.domain.model.dto.response.RegisterResponseDTO;
 import com.kicktime.backend.domain.services.AuthService;
 import org.springframework.http.ResponseEntity;
@@ -24,5 +26,10 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginRequestDTO request) {
+        String token = authService.login(request);
+        return ResponseEntity.ok(new LoginResponseDTO(token));
+    }
 
 }
