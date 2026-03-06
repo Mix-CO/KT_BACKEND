@@ -1,4 +1,4 @@
-package com.kicktime.backend.domain.services;
+package com.kicktime.backend.domain.services.authentication;
 
 import com.kicktime.backend.domain.model.dto.request.LoginRequestDTO;
 import com.kicktime.backend.domain.model.dto.request.RegisterRequestDTO;
