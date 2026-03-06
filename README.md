@@ -29,7 +29,52 @@ KickTime is a web platform for managing university soccer tournaments, using rea
 8. [Getting Started](#-getting-started)
 9. [Testing](#-testing)
 
+---
+
 ## 🏢 Project Architecture
+
+Kicktime follows a **Layered Monolithic Architecture**, where the entire system runs as a single deployable application but is internally organized into logical layers, each with a specific responsibility that communicates only with adjacent layers.
+
+This approach keeps deployment simple while maintaining a clear separation of concerns inside the codebase.
+
+- 🌐 **API Layer:** REST Controllers that handle incoming HTTP requests and expose the application endpoints.
+- 🧠 **Service Layer:** Contains the business logic and orchestrates the application workflows.
+- 📦 **Domain Layer:** Defines the core entities, DTOs, and enums that model the problem space.
+- 🗄️ **Persistence Layer:** Manages database access through repository interfaces, abstracting data storage.
+- ⚙️ **Configuration Layer:** Centralizes security settings and application-wide configuration.
+- ✔️ **Simple Deployment:** The entire system runs as a single application, reducing operational complexity.
+- ✔️ **Separation of Concerns:** Distinct boundaries between each layer prevent logic from leaking across responsibilities.
+- ✔️ **Maintainability:** Each layer can be updated or refactored independently without affecting others.
+- ✔️ **Modularity:** Functional modules keep related logic grouped, making the codebase easier to navigate and extend.
+
+### 📂 Project Structure
+```
+📦 kicktime
+│
+├── 📂 backend
+│   ├── 📂 api
+│   │   ├── 📂 authentication
+│   │   ├── 📂 match
+│   │   ├── 📂 reservation
+│   │   └── 📂 standings
+│   ├── 📂 config
+│   ├── 📂 domain
+│   │   └── 📂 model
+│   │       ├── 📂 dto
+│   │       │   ├── 📂 request
+│   │       │   └── 📂 response
+│   │       └── 📂 enums
+│   ├── 📂 services
+│   │   ├── 📂 authentication
+│   │   ├── 📂 match
+│   │   ├── 📂 reservation
+│   │   └── 📂 standings
+│   └── 📂 repository
+│
+├── 📂 resources
+├── 📂 test
+└── 📂 target
+```
 
 ## 📡 API Endpoints
 
