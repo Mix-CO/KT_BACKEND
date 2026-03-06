@@ -1,7 +1,6 @@
 # 📌 La Selección - KickTime Backend
 
-KickTime is a web platform that enables the management of university soccer tournaments, optimizing match scheduling through real-time availability and artificial intelligence.
-
+KickTime is a web platform for managing university soccer tournaments, using real-time availability and artificial intelligence to optimize match scheduling.
 ## 👤 Developers
 
 - Sebastián Enrique Barros Barros
@@ -9,6 +8,26 @@ KickTime is a web platform that enables the management of university soccer tour
 - Julián Santiago Ramírez Urueña
 
 ## 📑 Content Table
+
+1. [Project Architecture](#-project-architecture)
+    - [Hexagonal Structure](#-hexagonal-structure)
+2. [API Documentation](#-api-endpoints)
+    - [Endpoints](#-api-endpoints)
+    - [HTTP Status Codes](#-http-status-codes)
+3. [Input & Output Data](#data-input--output)
+4. [Technologies](#technologies)
+    - [Backend & Core](#backend--core)
+    - [Database](#database)
+    - [DevOps & Infrastructure](#devops--infrastructure)
+    - [CI/CD & Quality Assurance](#cicd--quality-assurance)
+    - [Documentation & Testing](#documentation--testing)
+    - [Design](#design)
+    - [Communication & Project Management](#communication--project-management)
+5. [Branch Strategy](#-branches-strategy--structure)
+6. [Naming Conventions](#️-naming-conventions)
+7. [System Architecture & Design](#-system-architecture--design)
+8. [Getting Started](#-getting-started)
+9. [Testing](#-testing)
 
 ## 🏢 Project Architecture
 
