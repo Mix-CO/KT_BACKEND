@@ -1,4 +1,4 @@
-package com.kicktime.backend.model.dto.request;
+package com.kicktime.backend.domain.model.dto.request;
 
 import lombok.Getter;
 import lombok.Setter;

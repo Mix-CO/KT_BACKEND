@@ -1,6 +1,6 @@
-package com.kicktime.backend.model.dto.response;
+package com.kicktime.backend.domain.model.dto.response;
 
-import com.kicktime.backend.model.enums.UserRole;
+import com.kicktime.backend.domain.model.enums.UserRole;
 import lombok.*;
 
 @Getter

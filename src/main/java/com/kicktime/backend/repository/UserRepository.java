@@ -1,6 +1,6 @@
 package com.kicktime.backend.repository;
 
-import com.kicktime.backend.model.User;
+import com.kicktime.backend.domain.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

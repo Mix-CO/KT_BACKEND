@@ -1,4 +1,4 @@
-package com.kicktime.backend.model;
+package com.kicktime.backend.domain.model;
 
 import lombok.*;
 

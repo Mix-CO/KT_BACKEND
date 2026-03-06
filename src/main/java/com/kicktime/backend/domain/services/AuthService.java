@@ -1,9 +1,9 @@
-package com.kicktime.backend.service;
+package com.kicktime.backend.domain.services;
 
-import com.kicktime.backend.model.dto.request.RegisterRequestDTO;
-import com.kicktime.backend.model.User;
-import com.kicktime.backend.model.dto.response.RegisterResponseDTO;
-import com.kicktime.backend.model.enums.UserRole;
+import com.kicktime.backend.domain.model.dto.request.RegisterRequestDTO;
+import com.kicktime.backend.domain.model.User;
+import com.kicktime.backend.domain.model.dto.response.RegisterResponseDTO;
+import com.kicktime.backend.domain.model.enums.UserRole;
 import com.kicktime.backend.repository.UserRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;

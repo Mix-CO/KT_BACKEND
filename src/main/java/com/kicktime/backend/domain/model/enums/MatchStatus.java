@@ -1,4 +1,4 @@
-package com.kicktime.backend.model.enums;
+package com.kicktime.backend.domain.model.enums;
 
 public enum MatchStatus {
     SCHEDULED,

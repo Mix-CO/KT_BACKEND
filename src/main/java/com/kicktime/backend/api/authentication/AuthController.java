@@ -1,9 +1,8 @@
-package com.kicktime.backend.controller;
+package com.kicktime.backend.api.authentication;
 
-import com.kicktime.backend.model.dto.request.RegisterRequestDTO;
-import com.kicktime.backend.model.User;
-import com.kicktime.backend.model.dto.response.RegisterResponseDTO;
-import com.kicktime.backend.service.AuthService;
+import com.kicktime.backend.domain.model.dto.request.RegisterRequestDTO;
+import com.kicktime.backend.domain.model.dto.response.RegisterResponseDTO;
+import com.kicktime.backend.domain.services.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

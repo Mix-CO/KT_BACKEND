@@ -1,6 +1,6 @@
-package com.kicktime.backend.model;
+package com.kicktime.backend.domain.model;
 
-import com.kicktime.backend.model.enums.MatchStatus;
+import com.kicktime.backend.domain.model.enums.MatchStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
