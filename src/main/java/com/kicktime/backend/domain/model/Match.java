@@ -24,14 +24,16 @@ public class Match {
     @ManyToOne
     private Team awayTeam;
 
-    private LocalDateTime scheduledTime;
-
     @ManyToOne
-    private Field field;
+    private TimeSlot timeSlot;
 
     @Enumerated(EnumType.STRING)
     private MatchStatus status;
 
     @OneToOne(cascade = CascadeType.ALL)
     private MatchResult result;
+
+    @ManyToOne
+    private Tournament tournament;
+
 }

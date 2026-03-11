@@ -36,4 +36,8 @@ public class User {
 
     @OneToMany(mappedBy = "user")
     private List<Availability> availability;
+
+    @Column(unique = true)
+    private String studentId;
+
 }

@@ -21,11 +21,15 @@ public class Reservation {
     @ManyToOne
     private Match match;
 
-    private LocalDateTime proposedTime;
+    @ManyToOne
+    private TimeSlot timeSlot;
 
     @ManyToOne
     private User proposedBy;
 
     @Enumerated(EnumType.STRING)
     private ReservationStatus status;
+
+    private LocalDateTime createdAt;
+
 }

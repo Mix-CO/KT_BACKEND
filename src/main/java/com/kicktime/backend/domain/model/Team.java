@@ -27,4 +27,7 @@ public class Team {
 
     @ManyToOne
     private Tournament tournament;
+
+    private String logoUrl;
+
 }
