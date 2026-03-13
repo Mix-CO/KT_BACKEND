@@ -21,10 +21,6 @@ public class Availability {
     @ManyToOne
     private User user;
 
-    @Enumerated(EnumType.STRING)
-    private DayOfWeek dayOfWeek;
-
-    private LocalTime startTime;
-
-    private LocalTime endTime;
+    @ManyToOne
+    private TimeSlot timeSlot;
 }
