@@ -11,6 +11,6 @@ public interface StandingRepository extends JpaRepository<Standing, Long> {
     List<Standing> findByTournamentId(Long tournamentId);
 
     Optional<Standing> findByTeamIdAndTournamentId(Long teamId, Long tournamentId);
-
+    List<Standing> findByTournamentIdOrderByPointsDesc(Long tournamentId);
 }
 

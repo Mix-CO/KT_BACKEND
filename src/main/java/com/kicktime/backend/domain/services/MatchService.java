@@ -1,4 +1,4 @@
-package com.kicktime.backend.service;
+package com.kicktime.backend.domain.services;
 
 import com.kicktime.backend.domain.model.*;
 import com.kicktime.backend.domain.model.enums.MatchStatus;
@@ -32,7 +32,7 @@ public class MatchService {
     private final MatchResultRepository matchResultRepository;
 
     private final MatchMapper matchMapper;
-
+    private final StandingService standingService;
     /**
      * Create match
      */
@@ -74,7 +74,7 @@ public class MatchService {
      */
     public List<MatchResponseDTO> getMatchesByTournament(Long tournamentId) {
 
-        List<Match> matches = matchRepository.findByTournamentId(tournamentId);
+        List<Match> matches = matchRepository.findByTournament_Id(tournamentId);
 
         return matches.stream()
                 .map(matchMapper::toDTO)
@@ -133,7 +133,7 @@ public class MatchService {
         match.setStatus(MatchStatus.PLAYED);
 
         Match updatedMatch = matchRepository.save(match);
-
+        standingService.updateStandingsAfterMatch(match);
         return matchMapper.toDTO(updatedMatch);
     }
 

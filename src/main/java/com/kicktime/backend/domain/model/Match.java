@@ -36,4 +36,7 @@ public class Match {
     @ManyToOne
     private Tournament tournament;
 
+    @OneToOne
+    private Field field;
+
 }

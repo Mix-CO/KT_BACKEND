@@ -17,4 +17,6 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
 
     List<Match> findByStatus(MatchStatus status);
 
+    List<Match> findByTournament_Id(Long tournamentId);
+
 }
