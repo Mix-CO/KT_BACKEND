@@ -184,3 +184,10 @@ Commits follow this structure depending on the type of work:
 **User Story**
 `US - <HUCode> - <HUName>: <Short description>`
 > Example: `US - 012 - User Profile Management: Add avatar upload endpoint`
+
+## 📐 System Architecture & Design
+This section provides a visual representation of the module's architecture ilustrating the base diagrams to show the application structure and components flow.
+
+### 🧩 Components Diagram
+
+![KickTime - Components.drawio.png](docs/images/KickTime%20-%20Components.drawio.png)
