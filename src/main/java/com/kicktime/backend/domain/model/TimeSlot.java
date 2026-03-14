@@ -16,8 +16,10 @@ public class TimeSlot {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(name = "start_time")
     private LocalTime start;
     private DayOfWeek dayOfWeek;
+    @Column(name = "end_time")
     private LocalTime end;
     @ManyToOne
     private Field field;

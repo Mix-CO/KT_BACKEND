@@ -1,4 +1,4 @@
-package com.kicktime.backend.service;
+package com.kicktime.backend.domain.services;
 
 import com.kicktime.backend.domain.model.Availability;
 import com.kicktime.backend.domain.model.TimeSlot;
