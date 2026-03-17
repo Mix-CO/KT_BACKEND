@@ -12,10 +12,8 @@ import java.util.List;
 public class CreateTeamRequestDTO {
 
     private String name;
-
     private String logoUrl;
-
     private String captainStudentId;
-
+    private Long tournamentId;
     private List<PlayerCreateDTO> players;
 }

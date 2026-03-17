@@ -50,6 +50,7 @@ public class MatchService {
         Match match = Match.builder()
                 .homeTeam(homeTeam)
                 .awayTeam(awayTeam)
+                .tournament(tournament)
                 .status(MatchStatus.SCHEDULED)
                 .build();
 

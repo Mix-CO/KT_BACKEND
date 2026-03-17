@@ -1,17 +1,22 @@
 package com.kicktime.backend.domain.services;
 
+import com.kicktime.backend.domain.model.Standing;
 import com.kicktime.backend.domain.model.Team;
+import com.kicktime.backend.domain.model.Tournament;
 import com.kicktime.backend.domain.model.User;
 import com.kicktime.backend.domain.model.enums.UserRole;
 import com.kicktime.backend.domain.model.dto.request.CreateTeamRequestDTO;
 import com.kicktime.backend.domain.model.dto.request.PlayerCreateDTO;
 import com.kicktime.backend.domain.model.dto.response.TeamResponseDTO;
+import com.kicktime.backend.repository.StandingRepository;
+import com.kicktime.backend.repository.TournamentRepository;
 import com.kicktime.backend.util.mappers.TeamMapper;
 import com.kicktime.backend.repository.TeamRepository;
 import com.kicktime.backend.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,10 +25,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TeamService {
 
+    private final StandingRepository standingRepository;
     private final TeamRepository teamRepository;
+    private final TournamentRepository tournamentRepository;
     private final UserRepository userRepository;
     private final TeamMapper teamMapper;
-
+    private final BCryptPasswordEncoder passwordEncoder;
+    private static final String DEFAULT_PASSWORD = "kicktime123";
     /**
      * Create a new team
      */
@@ -36,16 +44,17 @@ public class TeamService {
             throw new RuntimeException("User already belongs to a team");
         }
 
-        // set studentId
-        captain.setStudentId(request.getCaptainStudentId());
+        Tournament tournament = tournamentRepository.findById(request.getTournamentId())
+                .orElseThrow(() -> new RuntimeException("Tournament not found"));
 
-        // promote to captain
+        captain.setStudentId(request.getCaptainStudentId());
         captain.setRole(UserRole.CAPTAIN);
 
         Team team = Team.builder()
                 .name(request.getName())
                 .logoUrl(request.getLogoUrl())
                 .captain(captain)
+                .tournament(tournament)
                 .build();
 
         team = teamRepository.save(team);
@@ -55,22 +64,34 @@ public class TeamService {
 
         // create players if provided
         if (request.getPlayers() != null) {
-
             for (PlayerCreateDTO playerDTO : request.getPlayers()) {
-
                 User player = User.builder()
                         .name(playerDTO.getName())
                         .studentId(playerDTO.getStudentId())
+                        .email(playerDTO.getEmail())
+                        .password(passwordEncoder.encode(DEFAULT_PASSWORD))
                         .role(UserRole.PLAYER)
                         .team(team)
                         .build();
-
                 userRepository.save(player);
             }
         }
 
-        Team savedTeam = teamRepository.findById(team.getId())
-                .orElseThrow();
+        Team savedTeam = teamRepository.findById(team.getId()).orElseThrow();
+
+        Standing standing = Standing.builder()
+                .team(savedTeam)
+                .tournament(tournament)
+                .played(0)
+                .wins(0)
+                .draws(0)
+                .losses(0)
+                .goalsFor(0)
+                .goalsAgainst(0)
+                .points(0)
+                .build();
+
+        standingRepository.save(standing);
 
         return teamMapper.toDTO(savedTeam);
     }
@@ -117,14 +138,15 @@ public class TeamService {
         User player = User.builder()
                 .name(playerDTO.getName())
                 .studentId(playerDTO.getStudentId())
+                .email(playerDTO.getEmail())
+                .password(passwordEncoder.encode(DEFAULT_PASSWORD))
                 .role(UserRole.PLAYER)
                 .team(team)
                 .build();
 
         userRepository.save(player);
 
-        Team updatedTeam = teamRepository.findById(teamId)
-                .orElseThrow();
+        Team updatedTeam = teamRepository.findById(teamId).orElseThrow();
 
         return teamMapper.toDTO(updatedTeam);
     }

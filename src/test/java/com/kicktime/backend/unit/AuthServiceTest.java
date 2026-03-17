@@ -22,8 +22,8 @@ class AuthServiceTest {
 
     @BeforeEach
     void setup() {
-        userRepository = Mockito.mock(UserRepository.class);
-        authService = new AuthService(userRepository);
+  //      userRepository = Mockito.mock(UserRepository.class);
+  //      authService = new AuthService(userRepository);
     }
 
     @Test

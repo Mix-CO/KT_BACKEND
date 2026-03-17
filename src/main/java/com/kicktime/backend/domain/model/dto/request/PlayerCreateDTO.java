@@ -10,6 +10,6 @@ import lombok.*;
 public class PlayerCreateDTO {
 
     private String name;
-
     private String studentId;
+    private String email;
 }

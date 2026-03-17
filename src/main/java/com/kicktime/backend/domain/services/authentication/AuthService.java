@@ -23,9 +23,9 @@ public class AuthService {
     private final String SECRET_KEY = "my-super-secret-key-for-kicktime-jwt-authentication-2026";
     private final Key key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
 
-    public AuthService(UserRepository userRepository) {
+    public AuthService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
-        this.passwordEncoder = new BCryptPasswordEncoder();
+        this.passwordEncoder = passwordEncoder;
     }
 
     public RegisterResponseDTO register(RegisterRequestDTO request) {
