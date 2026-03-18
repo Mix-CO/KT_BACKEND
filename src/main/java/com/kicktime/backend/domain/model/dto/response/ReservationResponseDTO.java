@@ -3,7 +3,9 @@ package com.kicktime.backend.domain.model.dto.response;
 import com.kicktime.backend.domain.model.enums.ReservationStatus;
 import lombok.*;
 
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Getter
 @Setter
@@ -17,6 +19,12 @@ public class ReservationResponseDTO {
     private Long matchId;
 
     private Long timeSlotId;
+
+    private DayOfWeek dayOfWeek;
+
+    private LocalTime startTime;
+
+    private LocalTime endTime;
 
     private Long proposedByUserId;
 

@@ -12,5 +12,5 @@ public class AvailabilityResponseDTO {
     private Long id;
     private Long userId;
     private String userName;
-    private Long timeSlotId;  // era: TimeSlot timeSlot
+    private Long timeSlotId;
 }
