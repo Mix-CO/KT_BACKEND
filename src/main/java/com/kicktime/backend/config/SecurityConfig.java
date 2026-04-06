@@ -41,6 +41,14 @@ public class SecurityConfig {
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
+                .cors(cors -> cors.configurationSource(request -> {
+                    var config = new org.springframework.web.cors.CorsConfiguration();
+                    config.setAllowedOrigins(java.util.List.of("http://localhost:5173"));
+                    config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                    config.setAllowedHeaders(java.util.List.of("*"));
+                    config.setAllowCredentials(true);
+                    return config;
+                }))
                 .oauth2Login(oauth -> oauth
                         .successHandler(oAuth2SuccessHandler)
                 )
