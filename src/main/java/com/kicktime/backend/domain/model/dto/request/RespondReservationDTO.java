@@ -8,7 +8,8 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UpdateReservationStatusRequestDTO {
-    private ReservationStatus status;
+public class RespondReservationDTO {
+    private Long reservationId;
     private Long respondingUserId;
+    private ReservationStatus status;
 }

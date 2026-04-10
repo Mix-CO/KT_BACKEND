@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>KickTime WS Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+</head>
+<body>
+    <h2>KickTime WebSocket Tester</h2>
+
+    <div>
+        <strong>Token JWT:</strong><br>
+        <textarea id="token" rows="3" cols="80" placeholder="Pega aquí el token de Oswaldo"></textarea><br>
+        <button onclick="conectar()">Conectar</button>
+        <button onclick="desconectar()">Desconectar</button>
+        <span id="estadoConexion" style="margin-left:10px; color:red">● Desconectado</span>
+    </div>
+
+    <hr>
+
+    <div>
+        <strong>Suscribirse a un TimeSlot:</strong><br>
+        TimeSlot ID: <input id="timeSlotId" value="1" /><br>
+        <button onclick="suscribir()">Suscribirse a /topic/timeslots/{id}</button>
+    </div>
+
+    <hr>
+
+    <div>
+        <strong>Solicitar Reserva (/app/reservation/request):</strong><br>
+        <textarea id="payloadRequest" rows="5" cols="80">{
+  "matchId": 1,
+  "timeSlotId": 1,
+  "userId": 1
+}</textarea><br>
+        <button onclick="enviarRequest()">Enviar solicitud</button>
+    </div>
+
+    <hr>
+
+    <div>
+        <strong>Responder Reserva (/app/reservation/respond):</strong><br>
+        <textarea id="payloadRespond" rows="5" cols="80">{
+  "reservationId": 1,
+  "respondingUserId": 2,
+  "status": "ACCEPTED"
+}</textarea><br>
+        <button onclick="enviarRespond()">Enviar respuesta</button>
+    </div>
+
+    <hr>
+
+    <strong>Log de mensajes:</strong><br>
+    <textarea id="log" rows="15" cols="80" readonly></textarea><br>
+    <button onclick="document.getElementById('log').value=''">Limpiar log</button>
+
+    <script>
+        let stompClient = null;
+
+        function log(msg) {
+            const logArea = document.getElementById('log');
+            logArea.value += new Date().toLocaleTimeString() + ' → ' + msg + '\n';
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        function conectar() {
+            const token = document.getElementById('token').value.trim();
+            const socket = new SockJS('http://localhost:8080/ws');
+            stompClient = Stomp.over(socket);
+            stompClient.connect(
+                { Authorization: 'Bearer ' + token },
+                function(frame) {
+                    document.getElementById('estadoConexion').textContent = '● Conectado';
+                    document.getElementById('estadoConexion').style.color = 'green';
+                    log('Conectado: ' + frame);
+                },
+                function(error) {
+                    log('ERROR conexión: ' + error);
+                }
+            );
+        }
+
+        function desconectar() {
+            if (stompClient) stompClient.disconnect();
+            document.getElementById('estadoConexion').textContent = '● Desconectado';
+            document.getElementById('estadoConexion').style.color = 'red';
+            log('Desconectado');
+        }
+
+        function suscribir() {
+            const id = document.getElementById('timeSlotId').value;
+            stompClient.subscribe('/topic/timeslots/' + id, function(msg) {
+                log('📨 Mensaje recibido: ' + msg.body);
+            });
+            log('Suscrito a /topic/timeslots/' + id);
+        }
+
+        function enviarRequest() {
+            const payload = document.getElementById('payloadRequest').value;
+            stompClient.send('/app/reservation/request', {}, payload);
+            log('Enviado a /app/reservation/request: ' + payload);
+        }
+
+        function enviarRespond() {
+            const payload = document.getElementById('payloadRespond').value;
+            stompClient.send('/app/reservation/respond', {}, payload);
+            log('Enviado a /app/reservation/respond: ' + payload);
+        }
+    </script>
+</body>
+</html>

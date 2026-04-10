@@ -1,5 +1,6 @@
 package com.kicktime.backend.domain.model;
 
+import com.kicktime.backend.domain.model.enums.TimeSlotStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -23,4 +24,7 @@ public class TimeSlot {
     private LocalTime end;
     @ManyToOne
     private Field field;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TimeSlotStatus status = TimeSlotStatus.AVAILABLE;
 }
