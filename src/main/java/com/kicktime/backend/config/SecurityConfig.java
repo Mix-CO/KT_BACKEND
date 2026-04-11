@@ -46,14 +46,18 @@ public class SecurityConfig {
                 )
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {
-                            response.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
+                            response.setHeader("Access-Control-Allow-Origin", "https://kt-frontend-rose.vercel.app");
                             response.setHeader("Access-Control-Allow-Credentials", "true");
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                         })
                 )
                 .cors(cors -> cors.configurationSource(request -> {
                     var config = new org.springframework.web.cors.CorsConfiguration();
-                    config.setAllowedOrigins(java.util.List.of("http://localhost:5173", "http://localhost:63342"));
+                    config.setAllowedOrigins(java.util.List.of(
+                            "http://localhost:5173",
+                            "http://localhost:63342",
+                            "https://kt-frontend-rose.vercel.app"
+                    ));
                     config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                     config.setAllowedHeaders(java.util.List.of("*"));
                     config.setAllowCredentials(true);
