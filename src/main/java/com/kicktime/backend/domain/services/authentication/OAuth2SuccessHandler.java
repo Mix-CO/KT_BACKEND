@@ -30,7 +30,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String email = oAuth2User.getAttribute("email");
         String name  = oAuth2User.getAttribute("name");
 
-        // Si el usuario no existe en tu BD, lo registra automáticamente
         User user = userRepository.findByEmail(email)
                 .orElseGet(() -> userRepository.save(
                         User.builder()
@@ -40,9 +39,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                                 .build()
                 ));
 
-        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name(), user.getId());
 
-        // Redirige al frontend con el token como query param
         response.sendRedirect("http://localhost:5173/oauth2/callback?token=" + token);
     }
 }

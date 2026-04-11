@@ -35,9 +35,14 @@ public class JwtFilter extends OncePerRequestFilter {
         String token = authHeader.substring(7);
 
         if (!jwtUtil.isTokenValid(token)) {
+            System.out.println(">>> TOKEN INVÁLIDO");
+            response.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
+            response.setHeader("Access-Control-Allow-Credentials", "true");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
+
+        System.out.println(">>> TOKEN VÁLIDO, usuario: " + jwtUtil.extractEmail(token));
 
         String email = jwtUtil.extractEmail(token);
         String role = jwtUtil.extractRole(token);
