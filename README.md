@@ -190,4 +190,4 @@ This section provides a visual representation of the module's architecture ilust
 
 ### 🧩 Components Diagram
 
-![KickTime - Components.drawio.png](docs/images/KickTime%20-%20Components.drawio.png)
+![ComponentsKT - V2.png](docs/images/ComponentsKT%20-%20V2.png)
