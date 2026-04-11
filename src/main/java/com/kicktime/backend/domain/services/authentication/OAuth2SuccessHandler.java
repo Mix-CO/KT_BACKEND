@@ -41,6 +41,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name(), user.getId());
 
-        response.sendRedirect("http://localhost:5173/oauth2/callback?token=" + token);
+        response.sendRedirect("https://kt-frontend-rose.vercel.app/oauth2/callback?token=" + token);
     }
 }
