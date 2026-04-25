@@ -36,7 +36,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if (!jwtUtil.isTokenValid(token)) {
             System.out.println(">>> TOKEN INVÁLIDO");
-            response.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
+            response.setHeader("Access-Control-Allow-Origin", "https://kt-frontend-rose.vercel.app");
             response.setHeader("Access-Control-Allow-Credentials", "true");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
