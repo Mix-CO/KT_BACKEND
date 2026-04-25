@@ -139,4 +139,33 @@ public class ReservationWebSocketService {
             timer.cancel(false);
         }
     }
+
+    /**
+     * Resuelve conflicto cuando dos capitanes piden la misma franja LOCKED
+     * Elige al azar entre la reserva existente y la nueva
+     */
+    public void resolveConflict(Long timeSlotId, Long existingReservationId, Long challengerReservationId) {
+        boolean existingWins = new java.util.Random().nextBoolean();
+
+        Long winnerId = existingWins ? existingReservationId : challengerReservationId;
+        Long loserId = existingWins ? challengerReservationId : existingReservationId;
+
+        // Rechaza al perdedor
+        reservationRepository.findById(loserId).ifPresent(loser -> {
+            loser.setStatus(ReservationStatus.REJECTED);
+            reservationRepository.save(loser);
+        });
+
+        // Notifica el resultado a todos
+        Map<String, Object> payload = new java.util.HashMap<>();
+        payload.put("timeSlotId", timeSlotId);
+        payload.put("status", "LOCKED");
+        payload.put("reservationId", winnerId);
+        payload.put("conflictResolved", true);
+        payload.put("winnerId", winnerId);
+        payload.put("loserId", loserId);
+        payload.put("timestamp", LocalDateTime.now().toString());
+
+        messagingTemplate.convertAndSend("/topic/timeslots/" + timeSlotId, (Object) payload);
+    }
 }

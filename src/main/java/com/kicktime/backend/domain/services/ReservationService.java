@@ -49,22 +49,55 @@ public class ReservationService {
             throw new RuntimeException("Only team captains can create reservations");
         }
 
-        if (timeSlot.getStatus() != TimeSlotStatus.AVAILABLE) {
-            throw new RuntimeException("TimeSlot is not available");
+        if (timeSlot.getStatus() == TimeSlotStatus.AVAILABLE) {
+            Reservation reservation = Reservation.builder()
+                    .match(match)
+                    .timeSlot(timeSlot)
+                    .proposedBy(user)
+                    .status(ReservationStatus.PENDING)
+                    .createdAt(LocalDateTime.now())
+                    .build();
+
+            Reservation savedReservation = reservationRepository.save(reservation);
+            reservationWebSocketService.lockTimeSlot(timeSlot.getId(), savedReservation.getId());
+            return reservationMapper.toDTO(savedReservation);
         }
 
-        Reservation reservation = Reservation.builder()
-                .match(match)
-                .timeSlot(timeSlot)
-                .proposedBy(user)
-                .status(ReservationStatus.PENDING)
-                .createdAt(LocalDateTime.now())
-                .build();
+        if (timeSlot.getStatus() == TimeSlotStatus.LOCKED) {
 
-        Reservation savedReservation = reservationRepository.save(reservation);
-        reservationWebSocketService.lockTimeSlot(timeSlot.getId(), savedReservation.getId());
+            List<Reservation> pendingForSlot = reservationRepository
+                    .findByTimeSlotIdAndStatus(timeSlot.getId(), ReservationStatus.PENDING);
 
-        return reservationMapper.toDTO(savedReservation);
+            if (pendingForSlot.isEmpty()) {
+                throw new RuntimeException("TimeSlot is locked but no pending reservation found");
+            }
+
+            Reservation existingReservation = pendingForSlot.get(0);
+
+            if (existingReservation.getMatch().getId().equals(match.getId())) {
+                throw new RuntimeException("You already have a pending reservation for this slot");
+            }
+
+            Reservation challengerReservation = Reservation.builder()
+                    .match(match)
+                    .timeSlot(timeSlot)
+                    .proposedBy(user)
+                    .status(ReservationStatus.PENDING)
+                    .createdAt(LocalDateTime.now())
+                    .build();
+
+            Reservation savedChallenger = reservationRepository.save(challengerReservation);
+
+            reservationWebSocketService.resolveConflict(
+                    timeSlot.getId(),
+                    existingReservation.getId(),
+                    savedChallenger.getId()
+            );
+
+            return reservationMapper.toDTO(savedChallenger);
+        }
+
+        throw new RuntimeException("TimeSlot is not available");
     }
 
     /**
