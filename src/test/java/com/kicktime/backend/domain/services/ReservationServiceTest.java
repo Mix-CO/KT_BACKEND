@@ -7,8 +7,6 @@ import com.kicktime.backend.domain.model.dto.response.ReservationResponseDTO;
 import com.kicktime.backend.domain.model.enums.MatchStatus;
 import com.kicktime.backend.domain.model.enums.ReservationStatus;
 import com.kicktime.backend.domain.model.enums.TimeSlotStatus;
-import com.kicktime.backend.domain.services.ReservationService;
-import com.kicktime.backend.domain.services.ReservationWebSocketService;
 import com.kicktime.backend.repository.*;
 import com.kicktime.backend.util.mappers.ReservationMapper;
 

@@ -154,6 +154,13 @@
             <artifactId>spring-boot-starter-websocket</artifactId>
         </dependency>
 
+        <!-- MockMvc para pruebas de integración web -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -209,6 +216,8 @@
                         <exclude>**/enums/**</exclude>
                         <exclude>**/BackendApplication.class</exclude>
                         <exclude>**/config/**</exclude>
+                        <exclude>**/mappers/**</exclude>
+                        <exclude>**/api/**</exclude>
                     </excludes>
                 </configuration>
                 <executions>

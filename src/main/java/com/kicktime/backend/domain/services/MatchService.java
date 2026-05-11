@@ -33,6 +33,8 @@ public class MatchService {
 
     private final MatchMapper matchMapper;
     private final StandingService standingService;
+
+    private static final String MATCH_NOT_FOUND = "Match not found";
     /**
      * Create match
      */
@@ -65,7 +67,7 @@ public class MatchService {
     public MatchResponseDTO getMatch(Long matchId) {
 
         Match match = matchRepository.findById(matchId)
-                .orElseThrow(() -> new RuntimeException("Match not found"));
+                .orElseThrow(() -> new RuntimeException(MATCH_NOT_FOUND));
 
         return matchMapper.toDTO(match);
     }
@@ -88,7 +90,7 @@ public class MatchService {
     public MatchResponseDTO scheduleMatch(Long matchId, ScheduleMatchRequestDTO request) {
 
         Match match = matchRepository.findById(matchId)
-                .orElseThrow(() -> new RuntimeException("Match not found"));
+                .orElseThrow(() -> new RuntimeException(MATCH_NOT_FOUND));
 
         Field field = fieldRepository.findById(request.getFieldId())
                 .orElseThrow(() -> new RuntimeException("Field not found"));
@@ -111,7 +113,7 @@ public class MatchService {
     public MatchResponseDTO recordMatchResult(Long matchId, RecordMatchResultRequestDTO request) {
 
         Match match = matchRepository.findById(matchId)
-                .orElseThrow(() -> new RuntimeException("Match not found"));
+                .orElseThrow(() -> new RuntimeException(MATCH_NOT_FOUND));
 
         Team winner = null;
 
@@ -144,7 +146,7 @@ public class MatchService {
     public void deleteMatch(Long matchId) {
 
         if (!matchRepository.existsById(matchId)) {
-            throw new RuntimeException("Match not found");
+            throw new RuntimeException(MATCH_NOT_FOUND);
         }
 
         matchRepository.deleteById(matchId);

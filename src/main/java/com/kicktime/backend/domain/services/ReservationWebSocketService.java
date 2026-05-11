@@ -35,12 +35,14 @@ public class ReservationWebSocketService {
     private final Map<Long, ScheduledFuture<?>> activeTimers = new ConcurrentHashMap<>();
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(10);
 
+    private static final String TIME_SLOT_NOT_FOUND = "Time slot not found";
+
     /**
      * Bloquea una franja y arranca el timer de expiración
      */
     public void lockTimeSlot(Long timeSlotId, Long reservationId) {
         TimeSlot timeSlot = timeSlotRepository.findById(timeSlotId)
-                .orElseThrow(() -> new RuntimeException("TimeSlot not found"));
+                .orElseThrow(() -> new RuntimeException(TIME_SLOT_NOT_FOUND));
 
         timeSlot.setStatus(TimeSlotStatus.LOCKED);
         timeSlotRepository.save(timeSlot);
@@ -65,7 +67,7 @@ public class ReservationWebSocketService {
         cancelTimer(timeSlotId);
 
         TimeSlot timeSlot = timeSlotRepository.findById(timeSlotId)
-                .orElseThrow(() -> new RuntimeException("TimeSlot not found"));
+                .orElseThrow(() -> new RuntimeException(TIME_SLOT_NOT_FOUND));
 
         timeSlot.setStatus(TimeSlotStatus.RESERVED);
         timeSlotRepository.save(timeSlot);
@@ -86,7 +88,7 @@ public class ReservationWebSocketService {
         cancelTimer(timeSlotId);
 
         TimeSlot timeSlot = timeSlotRepository.findById(timeSlotId)
-                .orElseThrow(() -> new RuntimeException("TimeSlot not found"));
+                .orElseThrow(() -> new RuntimeException(TIME_SLOT_NOT_FOUND));
 
         timeSlot.setStatus(TimeSlotStatus.AVAILABLE);
         timeSlotRepository.save(timeSlot);

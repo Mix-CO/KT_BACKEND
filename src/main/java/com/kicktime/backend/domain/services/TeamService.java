@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -32,9 +33,13 @@ public class TeamService {
     private final TeamMapper teamMapper;
     private final BCryptPasswordEncoder passwordEncoder;
     private static final String DEFAULT_PASSWORD = "kicktime123";
+
+    private static final String TEAM_NOT_FOUND = "Team not found";
+
     /**
      * Create a new team
      */
+    @Transactional
     public TeamResponseDTO createTeam(CreateTeamRequestDTO request, Long creatorUserId) {
 
         User captain = userRepository.findById(creatorUserId)
@@ -99,10 +104,11 @@ public class TeamService {
     /**
      * Get team by id
      */
+    @Transactional(readOnly = true)
     public TeamResponseDTO getTeam(Long id) {
 
         Team team = teamRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Team not found"));
+                .orElseThrow(() -> new RuntimeException(TEAM_NOT_FOUND));
 
         return teamMapper.toDTO(team);
     }
@@ -110,6 +116,7 @@ public class TeamService {
     /**
      * Get all teams
      */
+    @Transactional(readOnly = true)
     public List<TeamResponseDTO> getAllTeams() {
 
         List<Team> teams = teamRepository.findAll();
@@ -120,6 +127,7 @@ public class TeamService {
     /**
      * Get teams by tournament
      */
+    @Transactional(readOnly = true)
     public List<TeamResponseDTO> getTeamsByTournament(Long tournamentId) {
 
         List<Team> teams = teamRepository.findByTournamentId(tournamentId);
@@ -130,10 +138,11 @@ public class TeamService {
     /**
      * Add player to team
      */
+    @Transactional(readOnly = true)
     public TeamResponseDTO addPlayerToTeam(Long teamId, PlayerCreateDTO playerDTO) {
 
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new RuntimeException("Team not found"));
+                .orElseThrow(() -> new RuntimeException(TEAM_NOT_FOUND));
 
         User player = User.builder()
                 .name(playerDTO.getName())
@@ -154,10 +163,11 @@ public class TeamService {
     /**
      * Change captain
      */
+    @Transactional
     public TeamResponseDTO changeCaptain(Long teamId, Long userId) {
 
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new RuntimeException("Team not found"));
+                .orElseThrow(() -> new RuntimeException(TEAM_NOT_FOUND));
 
         User newCaptain = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -178,10 +188,11 @@ public class TeamService {
     /**
      * Delete team
      */
+    @Transactional
     public void deleteTeam(Long teamId) {
 
         if (!teamRepository.existsById(teamId)) {
-            throw new RuntimeException("Team not found");
+            throw new RuntimeException(TEAM_NOT_FOUND);
         }
 
         teamRepository.deleteById(teamId);
