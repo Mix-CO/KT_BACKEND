@@ -46,7 +46,10 @@ public class SecurityConfig {
                 )
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {
-                            response.setHeader("Access-Control-Allow-Origin", "https://kt-frontend-rose.vercel.app");
+                            String origin = request.getHeader("Origin");
+                            if (origin != null) {
+                                response.setHeader("Access-Control-Allow-Origin", origin);
+                            }
                             response.setHeader("Access-Control-Allow-Credentials", "true");
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                         })
