@@ -16,7 +16,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.http.*;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,7 +30,7 @@ public class AiSuggestionService {
     private String geminiApiKey;
 
     private static final String GEMINI_URL =
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=";
+            "https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=";
 
     public AiSuggestionResponseDTO suggestTimeSlot(Long matchId) {
 
@@ -43,7 +42,6 @@ public class AiSuggestionService {
 
         List<TimeSlot> allSlots = timeSlotRepository.findAll();
 
-        // Contar cuántos jugadores de cada equipo están disponibles por timeSlot
         Map<Long, Integer> homeAvailCount = new HashMap<>();
         Map<Long, Integer> awayAvailCount = new HashMap<>();
 
@@ -61,7 +59,6 @@ public class AiSuggestionService {
             }
         }
 
-        // Construir resumen de disponibilidad para el prompt
         StringBuilder availabilitySummary = new StringBuilder();
         for (TimeSlot slot : allSlots) {
             int home = homeAvailCount.getOrDefault(slot.getId(), 0);
@@ -102,7 +99,6 @@ public class AiSuggestionService {
                 availabilitySummary.toString()
         );
 
-        // Llamar a Gemini
         RestTemplate restTemplate = new RestTemplate();
         String url = GEMINI_URL + geminiApiKey;
 
@@ -120,7 +116,6 @@ public class AiSuggestionService {
 
         ResponseEntity<Map> response = restTemplate.postForEntity(url, entity, Map.class);
 
-        // Parsear respuesta
         String rawText = "";
         try {
             List candidates = (List) response.getBody().get("candidates");
@@ -130,11 +125,9 @@ public class AiSuggestionService {
             Map part = (Map) parts.get(0);
             rawText = (String) part.get("text");
 
-            // Limpiar markdown si Gemini lo devuelve con ```json
             rawText = rawText.replaceAll("```json", "").replaceAll("```", "").trim();
-
-            // Parsear JSON simple
             rawText = rawText.replaceAll("\\s+", " ");
+
             Long slotId = Long.parseLong(rawText.replaceAll(".*\"slotId\":\\s*(\\d+).*", "$1"));
             String explanation = rawText.replaceAll(".*\"explanation\":\\s*\"([^\"]+)\".*", "$1");
 
@@ -147,13 +140,7 @@ public class AiSuggestionService {
                     .build();
 
         } catch (Exception e) {
-            return AiSuggestionResponseDTO.builder()
-                    .matchId(matchId)
-                    .homeTeamName(match.getHomeTeam().getName())
-                    .awayTeamName(match.getAwayTeam().getName())
-                    .suggestedTimeSlotId(null)
-                    .explanation("No se pudo generar una sugerencia en este momento.")
-                    .build();
+            throw new RuntimeException("Error al procesar respuesta de Gemini: " + e.getMessage(), e);
         }
     }
 }
