@@ -32,9 +32,7 @@ public class TeamService {
     private final TeamMapper teamMapper;
     private final BCryptPasswordEncoder passwordEncoder;
     private static final String DEFAULT_PASSWORD = "kicktime123";
-    /**
-     * Create a new team
-     */
+
     public TeamResponseDTO createTeam(CreateTeamRequestDTO request, Long creatorUserId) {
 
         User captain = userRepository.findById(creatorUserId)
@@ -62,17 +60,22 @@ public class TeamService {
         captain.setTeam(team);
         userRepository.save(captain);
 
-        // create players if provided
         if (request.getPlayers() != null) {
             for (PlayerCreateDTO playerDTO : request.getPlayers()) {
-                User player = User.builder()
-                        .name(playerDTO.getName())
-                        .studentId(playerDTO.getStudentId())
-                        .email(playerDTO.getEmail())
-                        .password(passwordEncoder.encode(DEFAULT_PASSWORD))
-                        .role(UserRole.PLAYER)
-                        .team(team)
-                        .build();
+                Team finalTeam = team;
+                User player = userRepository.findByEmail(playerDTO.getEmail())
+                        .orElseGet(() -> User.builder()
+                                .name(playerDTO.getName())
+                                .studentId(playerDTO.getStudentId())
+                                .email(playerDTO.getEmail())
+                                .password(passwordEncoder.encode(DEFAULT_PASSWORD))
+                                .role(UserRole.PLAYER)
+                                .build());
+
+                player.setTeam(finalTeam);
+                if (player.getRole() == null) {
+                    player.setRole(UserRole.PLAYER);
+                }
                 userRepository.save(player);
             }
         }
@@ -96,64 +99,46 @@ public class TeamService {
         return teamMapper.toDTO(savedTeam);
     }
 
-    /**
-     * Get team by id
-     */
     public TeamResponseDTO getTeam(Long id) {
-
         Team team = teamRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Team not found"));
-
         return teamMapper.toDTO(team);
     }
 
-    /**
-     * Get all teams
-     */
     public List<TeamResponseDTO> getAllTeams() {
-
         List<Team> teams = teamRepository.findAll();
-
         return teamMapper.toDTOList(teams);
     }
 
-    /**
-     * Get teams by tournament
-     */
     public List<TeamResponseDTO> getTeamsByTournament(Long tournamentId) {
-
         List<Team> teams = teamRepository.findByTournamentId(tournamentId);
-
         return teamMapper.toDTOList(teams);
     }
 
-    /**
-     * Add player to team
-     */
     public TeamResponseDTO addPlayerToTeam(Long teamId, PlayerCreateDTO playerDTO) {
 
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new RuntimeException("Team not found"));
 
-        User player = User.builder()
-                .name(playerDTO.getName())
-                .studentId(playerDTO.getStudentId())
-                .email(playerDTO.getEmail())
-                .password(passwordEncoder.encode(DEFAULT_PASSWORD))
-                .role(UserRole.PLAYER)
-                .team(team)
-                .build();
+        User player = userRepository.findByEmail(playerDTO.getEmail())
+                .orElseGet(() -> User.builder()
+                        .name(playerDTO.getName())
+                        .studentId(playerDTO.getStudentId())
+                        .email(playerDTO.getEmail())
+                        .password(passwordEncoder.encode(DEFAULT_PASSWORD))
+                        .role(UserRole.PLAYER)
+                        .build());
 
+        player.setTeam(team);
+        if (player.getRole() == null) {
+            player.setRole(UserRole.PLAYER);
+        }
         userRepository.save(player);
 
         Team updatedTeam = teamRepository.findById(teamId).orElseThrow();
-
         return teamMapper.toDTO(updatedTeam);
     }
 
-    /**
-     * Change captain
-     */
     public TeamResponseDTO changeCaptain(Long teamId, Long userId) {
 
         Team team = teamRepository.findById(teamId)
@@ -167,24 +152,16 @@ public class TeamService {
         }
 
         newCaptain.setRole(UserRole.CAPTAIN);
-
         team.setCaptain(newCaptain);
 
         Team updatedTeam = teamRepository.save(team);
-
         return teamMapper.toDTO(updatedTeam);
     }
 
-    /**
-     * Delete team
-     */
     public void deleteTeam(Long teamId) {
-
         if (!teamRepository.existsById(teamId)) {
             throw new RuntimeException("Team not found");
         }
-
         teamRepository.deleteById(teamId);
     }
 }
-
