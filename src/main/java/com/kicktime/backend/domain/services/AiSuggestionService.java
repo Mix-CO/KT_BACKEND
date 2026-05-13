@@ -10,6 +10,8 @@ import com.kicktime.backend.repository.MatchRepository;
 import com.kicktime.backend.repository.TimeSlotRepository;
 import com.kicktime.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -20,6 +22,8 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class AiSuggestionService {
+
+    private static final Logger log = LoggerFactory.getLogger(AiSuggestionService.class);
 
     private final MatchRepository matchRepository;
     private final UserRepository userRepository;
@@ -102,6 +106,12 @@ public class AiSuggestionService {
         RestTemplate restTemplate = new RestTemplate();
         String url = GEMINI_URL + geminiApiKey;
 
+        log.info(">>> Llamando a Gemini. URL base: {} | Key presente: {}",
+                GEMINI_URL,
+                geminiApiKey != null && !geminiApiKey.isBlank()
+                        ? "SÍ (len=" + geminiApiKey.length() + ")"
+                        : "NO");
+
         Map<String, Object> requestBody = Map.of(
                 "contents", List.of(
                         Map.of("parts", List.of(
@@ -114,10 +124,12 @@ public class AiSuggestionService {
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
-        ResponseEntity<Map> response = restTemplate.postForEntity(url, entity, Map.class);
-
         String rawText = "";
         try {
+            ResponseEntity<Map> response = restTemplate.postForEntity(url, entity, Map.class);
+
+            log.info(">>> Respuesta Gemini status: {}", response.getStatusCode());
+
             List candidates = (List) response.getBody().get("candidates");
             Map candidate = (Map) candidates.get(0);
             Map content = (Map) candidate.get("content");
@@ -125,11 +137,15 @@ public class AiSuggestionService {
             Map part = (Map) parts.get(0);
             rawText = (String) part.get("text");
 
+            log.info(">>> Raw text de Gemini: {}", rawText);
+
             rawText = rawText.replaceAll("```json", "").replaceAll("```", "").trim();
             rawText = rawText.replaceAll("\\s+", " ");
 
             Long slotId = Long.parseLong(rawText.replaceAll(".*\"slotId\":\\s*(\\d+).*", "$1"));
             String explanation = rawText.replaceAll(".*\"explanation\":\\s*\"([^\"]+)\".*", "$1");
+
+            log.info(">>> Sugerencia generada: slotId={}, explanation={}", slotId, explanation);
 
             return AiSuggestionResponseDTO.builder()
                     .matchId(matchId)
@@ -140,6 +156,7 @@ public class AiSuggestionService {
                     .build();
 
         } catch (Exception e) {
+            log.error(">>> Error Gemini: {}", e.getMessage(), e);
             throw new RuntimeException("Error al procesar respuesta de Gemini: " + e.getMessage(), e);
         }
     }
