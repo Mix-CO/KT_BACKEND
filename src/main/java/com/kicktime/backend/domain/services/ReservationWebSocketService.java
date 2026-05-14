@@ -18,6 +18,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.List;
 
 @Service
 @EnableScheduling
@@ -71,9 +72,10 @@ public class ReservationWebSocketService {
      */
     private void resolveCoinFlip(Long timeSlotId, Long newReservationId) {
         // Buscar la reserva activa actual para esta franja
-        Reservation currentReservation = reservationRepository
-                .findByTimeSlotIdAndStatus(timeSlotId, ReservationStatus.PENDING)
-                .orElse(null);
+        List<Reservation> pendingReservations = reservationRepository
+                .findByTimeSlotIdAndStatus(timeSlotId, ReservationStatus.PENDING);
+
+        Reservation currentReservation = pendingReservations.isEmpty() ? null : pendingReservations.get(0);
 
         if (currentReservation == null) {
             // No hay reserva activa, tratar como franja disponible
