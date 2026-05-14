@@ -49,8 +49,9 @@ public class ReservationService {
             throw new RuntimeException("Only team captains can create reservations");
         }
 
-        if (timeSlot.getStatus() != TimeSlotStatus.AVAILABLE) {
-            throw new RuntimeException("TimeSlot is not available");
+        // Permitir AVAILABLE y LOCKED — si está LOCKED el WebSocket resuelve con coin flip
+        if (timeSlot.getStatus() == TimeSlotStatus.RESERVED) {
+            throw new RuntimeException("TimeSlot is already reserved");
         }
 
         Reservation reservation = Reservation.builder()
@@ -129,13 +130,12 @@ public class ReservationService {
                 }
             }
         } else if (request.getStatus() == ReservationStatus.REJECTED) {
-
-            // Liberar la franja por WebSocket
             reservationWebSocketService.releaseTimeSlot(
                     reservation.getTimeSlot().getId(),
                     reservationId
             );
         }
+
         return reservationMapper.toDTO(updatedReservation);
     }
 
