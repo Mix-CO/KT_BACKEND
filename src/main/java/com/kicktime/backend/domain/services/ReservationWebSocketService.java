@@ -38,26 +38,98 @@ public class ReservationWebSocketService {
     private static final String TIME_SLOT_NOT_FOUND = "Time slot not found";
 
     /**
-     * Bloquea una franja y arranca el timer de expiración
+     * Bloquea una franja y arranca el timer de expiración.
+     * Si la franja ya está LOCKED, lanza una moneda para decidir quién espera.
      */
     public void lockTimeSlot(Long timeSlotId, Long reservationId) {
         TimeSlot timeSlot = timeSlotRepository.findById(timeSlotId)
                 .orElseThrow(() -> new RuntimeException(TIME_SLOT_NOT_FOUND));
 
-        timeSlot.setStatus(TimeSlotStatus.LOCKED);
-        timeSlotRepository.save(timeSlot);
+        // Franja disponible — flujo normal
+        if (timeSlot.getStatus() == TimeSlotStatus.AVAILABLE) {
+            timeSlot.setStatus(TimeSlotStatus.LOCKED);
+            timeSlotRepository.save(timeSlot);
+            notifyTimeSlotUpdate(timeSlotId, "LOCKED", reservationId);
 
-        // Notifica a todos los clientes suscritos
-        notifyTimeSlotUpdate(timeSlotId, "LOCKED", reservationId);
+            ScheduledFuture<?> timer = scheduler.schedule(
+                    () -> expireReservation(timeSlotId, reservationId),
+                    LOCK_TIMEOUT_SECONDS,
+                    TimeUnit.SECONDS
+            );
+            activeTimers.put(timeSlotId, timer);
 
-        // Arranca el timer de expiración
-        ScheduledFuture<?> timer = scheduler.schedule(
-                () -> expireReservation(timeSlotId, reservationId),
-                LOCK_TIMEOUT_SECONDS,
-                TimeUnit.SECONDS
-        );
+        } else if (timeSlot.getStatus() == TimeSlotStatus.LOCKED) {
+            // Franja ya bloqueada — coin flip
+            resolveCoinFlip(timeSlotId, reservationId);
+        }
+        // Si está RESERVED no hacemos nada — ya tiene dueño
+    }
 
-        activeTimers.put(timeSlotId, timer);
+    /**
+     * Lanza una moneda para decidir entre la reserva actual y la nueva.
+     * El ganador queda como PENDING, el perdedor queda REJECTED.
+     */
+    private void resolveCoinFlip(Long timeSlotId, Long newReservationId) {
+        // Buscar la reserva activa actual para esta franja
+        Reservation currentReservation = reservationRepository
+                .findByTimeSlotIdAndStatus(timeSlotId, ReservationStatus.PENDING)
+                .orElse(null);
+
+        if (currentReservation == null) {
+            // No hay reserva activa, tratar como franja disponible
+            TimeSlot timeSlot = timeSlotRepository.findById(timeSlotId)
+                    .orElseThrow(() -> new RuntimeException(TIME_SLOT_NOT_FOUND));
+            timeSlot.setStatus(TimeSlotStatus.AVAILABLE);
+            timeSlotRepository.save(timeSlot);
+            lockTimeSlot(timeSlotId, newReservationId);
+            return;
+        }
+
+        boolean newReservationWins = coinFlip();
+
+        if (newReservationWins) {
+            // Nueva reserva gana — rechazar la actual y bloquear para la nueva
+            currentReservation.setStatus(ReservationStatus.REJECTED);
+            reservationRepository.save(currentReservation);
+
+            // Cancelar el timer de la reserva anterior
+            cancelTimer(timeSlotId);
+
+            // Notificar al perdedor
+            notifyTimeSlotUpdate(timeSlotId, "COIN_FLIP_LOST", currentReservation.getId());
+
+            // Arrancar nuevo timer para la nueva reserva
+            ScheduledFuture<?> timer = scheduler.schedule(
+                    () -> expireReservation(timeSlotId, newReservationId),
+                    LOCK_TIMEOUT_SECONDS,
+                    TimeUnit.SECONDS
+            );
+            activeTimers.put(timeSlotId, timer);
+
+            // Notificar al ganador
+            notifyTimeSlotUpdate(timeSlotId, "COIN_FLIP_WON", newReservationId);
+
+        } else {
+            // Reserva actual gana — rechazar la nueva inmediatamente
+            Reservation newReservation = reservationRepository.findById(newReservationId)
+                    .orElseThrow(() -> new RuntimeException("Reservation not found"));
+
+            newReservation.setStatus(ReservationStatus.REJECTED);
+            reservationRepository.save(newReservation);
+
+            // Notificar al perdedor
+            notifyTimeSlotUpdate(timeSlotId, "COIN_FLIP_LOST", newReservationId);
+
+            // Notificar al ganador que sigue esperando
+            notifyTimeSlotUpdate(timeSlotId, "COIN_FLIP_WON", currentReservation.getId());
+        }
+    }
+
+    /**
+     * Lanza la moneda — 50/50
+     */
+    boolean coinFlip() {
+        return new java.util.Random().nextBoolean();
     }
 
     /**
