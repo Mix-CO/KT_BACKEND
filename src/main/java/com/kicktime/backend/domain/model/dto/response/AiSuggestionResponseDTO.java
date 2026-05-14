@@ -12,5 +12,8 @@ public class AiSuggestionResponseDTO {
     private String homeTeamName;
     private String awayTeamName;
     private Long suggestedTimeSlotId;
+    private String dayOfWeek;
+    private String startTime;
+    private String endTime;
     private String explanation;
 }

@@ -137,13 +137,20 @@ public class AiSuggestionService {
             Long slotId = Long.parseLong(rawText.replaceAll(".*\"slotId\":\\s*(\\d+).*", "$1"));
             String explanation = rawText.replaceAll(".*\"explanation\":\\s*\"([^\"]+)\".*", "$1");
 
-            log.info(">>> Sugerencia generada: slotId={}, explanation={}", slotId, explanation);
+            TimeSlot suggestedSlot = timeSlotRepository.findById(slotId)
+                    .orElseThrow(() -> new RuntimeException("TimeSlot sugerido no encontrado: " + slotId));
+
+            log.info(">>> Sugerencia generada: slotId={}, día={}, hora={}-{}",
+                    slotId, suggestedSlot.getDayOfWeek(), suggestedSlot.getStart(), suggestedSlot.getEnd());
 
             return AiSuggestionResponseDTO.builder()
                     .matchId(matchId)
                     .homeTeamName(match.getHomeTeam().getName())
                     .awayTeamName(match.getAwayTeam().getName())
                     .suggestedTimeSlotId(slotId)
+                    .dayOfWeek(suggestedSlot.getDayOfWeek().toString())
+                    .startTime(suggestedSlot.getStart().toString())
+                    .endTime(suggestedSlot.getEnd().toString())
                     .explanation(explanation)
                     .build();
 
