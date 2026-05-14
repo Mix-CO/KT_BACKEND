@@ -30,11 +30,10 @@ public class AiSuggestionService {
     private final AvailabilityRepository availabilityRepository;
     private final TimeSlotRepository timeSlotRepository;
 
-    @Value("${gemini.api.key}")
-    private String geminiApiKey;
+    @Value("${groq.api.key}")
+    private String groqApiKey;
 
-    private static final String GEMINI_URL =
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=";
+    private static final String GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 
     public AiSuggestionResponseDTO suggestTimeSlot(Long matchId) {
 
@@ -92,11 +91,8 @@ public class AiSuggestionService {
             
             Selecciona el Slot ID que maximice la asistencia combinada de ambos equipos.
             
-            Responde ÚNICAMENTE en este formato JSON, sin texto adicional:
-            {
-              "slotId": <número>,
-              "explanation": "<explicación breve en español de por qué este horario es el mejor>"
-            }
+            Responde ÚNICAMENTE en este formato JSON, sin texto adicional, sin markdown:
+            {"slotId": <número>, "explanation": "<explicación breve en español de por qué este horario es el mejor>"}
             """,
                 match.getHomeTeam().getName(), homePlayers.size(),
                 match.getAwayTeam().getName(), awayPlayers.size(),
@@ -104,40 +100,36 @@ public class AiSuggestionService {
         );
 
         RestTemplate restTemplate = new RestTemplate();
-        String url = GEMINI_URL + geminiApiKey;
 
-        log.info(">>> Llamando a Gemini. URL base: {} | Key presente: {}",
-                GEMINI_URL,
-                geminiApiKey != null && !geminiApiKey.isBlank()
-                        ? "SÍ (len=" + geminiApiKey.length() + ")"
+        log.info(">>> Llamando a Groq. Key presente: {}",
+                groqApiKey != null && !groqApiKey.isBlank()
+                        ? "SÍ (len=" + groqApiKey.length() + ")"
                         : "NO");
 
         Map<String, Object> requestBody = Map.of(
-                "contents", List.of(
-                        Map.of("parts", List.of(
-                                Map.of("text", prompt)
-                        ))
-                )
+                "model", "llama-3.3-70b-versatile",
+                "messages", List.of(
+                        Map.of("role", "user", "content", prompt)
+                ),
+                "temperature", 0.2
         );
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(groqApiKey);
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
-        String rawText = "";
         try {
-            ResponseEntity<Map> response = restTemplate.postForEntity(url, entity, Map.class);
+            ResponseEntity<Map> response = restTemplate.postForEntity(GROQ_URL, entity, Map.class);
 
-            log.info(">>> Respuesta Gemini status: {}", response.getStatusCode());
+            log.info(">>> Respuesta Groq status: {}", response.getStatusCode());
 
-            List candidates = (List) response.getBody().get("candidates");
-            Map candidate = (Map) candidates.get(0);
-            Map content = (Map) candidate.get("content");
-            List parts = (List) content.get("parts");
-            Map part = (Map) parts.get(0);
-            rawText = (String) part.get("text");
+            List choices = (List) response.getBody().get("choices");
+            Map choice = (Map) choices.get(0);
+            Map message = (Map) choice.get("message");
+            String rawText = (String) message.get("content");
 
-            log.info(">>> Raw text de Gemini: {}", rawText);
+            log.info(">>> Raw text de Groq: {}", rawText);
 
             rawText = rawText.replaceAll("```json", "").replaceAll("```", "").trim();
             rawText = rawText.replaceAll("\\s+", " ");
@@ -156,8 +148,8 @@ public class AiSuggestionService {
                     .build();
 
         } catch (Exception e) {
-            log.error(">>> Error Gemini: {}", e.getMessage(), e);
-            throw new RuntimeException("Error al procesar respuesta de Gemini: " + e.getMessage(), e);
+            log.error(">>> Error Groq: {}", e.getMessage(), e);
+            throw new RuntimeException("Error al procesar respuesta de Groq: " + e.getMessage(), e);
         }
     }
 }
