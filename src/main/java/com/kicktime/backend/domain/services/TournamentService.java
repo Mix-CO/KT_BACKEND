@@ -20,6 +20,7 @@ import com.kicktime.backend.util.mappers.TeamMapper;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -36,6 +37,7 @@ public class TournamentService {
     /**
      * Create tournament
      */
+    @Transactional
     public TournamentResponseDTO createTournament(CreateTournamentRequestDTO request) {
 
         if (request.getStartDate().isAfter(request.getEndDate())) {
@@ -71,6 +73,7 @@ public class TournamentService {
     /**
      * Get tournament by id
      */
+    @Transactional(readOnly = true)
     public TournamentResponseDTO getTournament(Long id) {
 
         Tournament tournament = tournamentRepository.findById(id)
@@ -82,6 +85,7 @@ public class TournamentService {
     /**
      * Get all tournaments
      */
+    @Transactional(readOnly = true)
     public List<TournamentResponseDTO> getAllTournaments() {
 
         List<Tournament> tournaments = tournamentRepository.findAll();
@@ -92,6 +96,7 @@ public class TournamentService {
     /**
      * Update tournament status
      */
+    @Transactional
     public TournamentResponseDTO updateTournamentStatus(Long tournamentId, UpdateTournamentStatusRequestDTO request) {
 
         Tournament tournament = tournamentRepository.findById(tournamentId)
@@ -107,6 +112,7 @@ public class TournamentService {
     /**
      * Delete tournament
      */
+    @Transactional
     public void deleteTournament(Long tournamentId) {
 
         if (!tournamentRepository.existsById(tournamentId)) {
@@ -119,6 +125,7 @@ public class TournamentService {
     /**
      * Get teams in tournament
      */
+    @Transactional(readOnly = true)
     public List<TeamResponseDTO> getTeamsInTournament(Long tournamentId) {
 
         List<Team> teams = teamRepository.findByTournamentId(tournamentId);

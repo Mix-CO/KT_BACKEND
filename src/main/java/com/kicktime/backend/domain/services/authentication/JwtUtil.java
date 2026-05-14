@@ -11,9 +11,9 @@ import java.util.Date;
 
 @Component
 public class JwtUtil {
-    private final String SECRET_KEY = "my-super-secret-key-for-kicktime-jwt-authentication-2026";
+    private static final String SECRET_KEY = "my-super-secret-key-for-kicktime-jwt-authentication-2026";
     private final Key key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
-    private final long EXPIRATION_MS = 3600000;
+    private static final long EXPIRATION_MS = 3600000;
 
     public String generateToken(String email, String role, Long userId) {
         return Jwts.builder()

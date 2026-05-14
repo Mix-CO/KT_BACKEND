@@ -3,7 +3,6 @@ package com.kicktime.backend.api;
 import com.kicktime.backend.domain.model.dto.request.CreateReservationRequestDTO;
 import com.kicktime.backend.domain.model.dto.request.RespondReservationDTO;
 import com.kicktime.backend.domain.model.dto.request.UpdateReservationStatusRequestDTO;
-import com.kicktime.backend.domain.model.dto.response.ReservationResponseDTO;
 import com.kicktime.backend.domain.services.ReservationService;
 import com.kicktime.backend.domain.services.ReservationWebSocketService;
 import lombok.RequiredArgsConstructor;

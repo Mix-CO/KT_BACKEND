@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -33,6 +34,12 @@ public class TeamService {
     private final BCryptPasswordEncoder passwordEncoder;
     private static final String DEFAULT_PASSWORD = "kicktime123";
 
+    private static final String TEAM_NOT_FOUND = "Team not found";
+
+    /**
+     * Create a new team
+     */
+    @Transactional
     public TeamResponseDTO createTeam(CreateTeamRequestDTO request, Long creatorUserId) {
 
         User captain = userRepository.findById(creatorUserId)
@@ -60,6 +67,7 @@ public class TeamService {
         captain.setTeam(team);
         userRepository.save(captain);
 
+        // create players if provided
         if (request.getPlayers() != null) {
             for (PlayerCreateDTO playerDTO : request.getPlayers()) {
                 Team finalTeam = team;
@@ -99,26 +107,48 @@ public class TeamService {
         return teamMapper.toDTO(savedTeam);
     }
 
+    /**
+     * Get team by id
+     */
+    @Transactional(readOnly = true)
     public TeamResponseDTO getTeam(Long id) {
+
         Team team = teamRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Team not found"));
+                .orElseThrow(() -> new RuntimeException(TEAM_NOT_FOUND));
+
         return teamMapper.toDTO(team);
     }
 
+    /**
+     * Get all teams
+     */
+    @Transactional(readOnly = true)
     public List<TeamResponseDTO> getAllTeams() {
+
         List<Team> teams = teamRepository.findAll();
+
         return teamMapper.toDTOList(teams);
     }
 
+    /**
+     * Get teams by tournament
+     */
+    @Transactional(readOnly = true)
     public List<TeamResponseDTO> getTeamsByTournament(Long tournamentId) {
+
         List<Team> teams = teamRepository.findByTournamentId(tournamentId);
+
         return teamMapper.toDTOList(teams);
     }
 
+    /**
+     * Add player to team
+     */
+    @Transactional(readOnly = true)
     public TeamResponseDTO addPlayerToTeam(Long teamId, PlayerCreateDTO playerDTO) {
 
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new RuntimeException("Team not found"));
+                .orElseThrow(() -> new RuntimeException(TEAM_NOT_FOUND));
 
         User player = userRepository.findByEmail(playerDTO.getEmail())
                 .orElseGet(() -> User.builder()
@@ -136,13 +166,18 @@ public class TeamService {
         userRepository.save(player);
 
         Team updatedTeam = teamRepository.findById(teamId).orElseThrow();
+
         return teamMapper.toDTO(updatedTeam);
     }
 
+    /**
+     * Change captain
+     */
+    @Transactional
     public TeamResponseDTO changeCaptain(Long teamId, Long userId) {
 
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new RuntimeException("Team not found"));
+                .orElseThrow(() -> new RuntimeException(TEAM_NOT_FOUND));
 
         User newCaptain = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -152,16 +187,24 @@ public class TeamService {
         }
 
         newCaptain.setRole(UserRole.CAPTAIN);
+
         team.setCaptain(newCaptain);
 
         Team updatedTeam = teamRepository.save(team);
+
         return teamMapper.toDTO(updatedTeam);
     }
 
+    /**
+     * Delete team
+     */
+    @Transactional
     public void deleteTeam(Long teamId) {
+
         if (!teamRepository.existsById(teamId)) {
-            throw new RuntimeException("Team not found");
+            throw new RuntimeException(TEAM_NOT_FOUND);
         }
+
         teamRepository.deleteById(teamId);
     }
 }
