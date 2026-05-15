@@ -1,6 +1,5 @@
 package com.kicktime.backend.api;
 
-import com.kicktime.backend.domain.model.dto.response.AiSuggestionResponseDTO;
 import com.kicktime.backend.domain.services.AiSuggestionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

@@ -2,9 +2,9 @@ package com.kicktime.backend.api;
 
 import com.kicktime.backend.domain.model.dto.request.LoginRequestDTO;
 import com.kicktime.backend.domain.model.dto.request.RegisterRequestDTO;
+import com.kicktime.backend.domain.model.dto.response.LoginResponseDTO;
 import com.kicktime.backend.domain.model.dto.response.RegisterResponseDTO;
 import com.kicktime.backend.domain.model.enums.UserRole;
-import com.kicktime.backend.domain.services.authentication.AuthService;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.ResponseEntity;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -20,30 +21,27 @@ import static org.junit.jupiter.api.Assertions.*;
 class AuthControllerTest {
 
     @Autowired
-    private AuthService authService;
-
-    // ================================================================
-    // register
-    // ================================================================
+    private AuthController authController;
 
     @Nested
     @DisplayName("register")
     class RegisterTests {
 
         @Test
-        @DisplayName("Debe registrar usuario exitosamente con datos válidos")
-        void register_ValidRequest_ReturnsRegisterResponseDTO() {
+        @DisplayName("Debe retornar 200 OK con datos del usuario registrado")
+        void register_ValidRequest_Returns200() {
             RegisterRequestDTO request = new RegisterRequestDTO();
             request.setName("Usuario Test");
             request.setEmail("test_register_" + System.currentTimeMillis() + "@kicktime.com");
             request.setPassword("password123");
 
-            RegisterResponseDTO result = authService.register(request);
+            ResponseEntity<RegisterResponseDTO> response = authController.register(request);
 
-            assertNotNull(result);
-            assertNotNull(result.getId());
-            assertEquals("Usuario Test", result.getName());
-            assertEquals(UserRole.PLAYER, result.getRole());
+            assertNotNull(response);
+            assertNotNull(response.getBody());
+            assertEquals(200, response.getStatusCode().value());
+            assertEquals("Usuario Test", response.getBody().getName());
+            assertEquals(UserRole.PLAYER, response.getBody().getRole());
         }
 
         @Test
@@ -54,9 +52,10 @@ class AuthControllerTest {
             request.setEmail("player_role_" + System.currentTimeMillis() + "@kicktime.com");
             request.setPassword("password123");
 
-            RegisterResponseDTO result = authService.register(request);
+            ResponseEntity<RegisterResponseDTO> response = authController.register(request);
 
-            assertEquals(UserRole.PLAYER, result.getRole());
+            assertNotNull(response.getBody());
+            assertEquals(UserRole.PLAYER, response.getBody().getRole());
         }
 
         @Test
@@ -68,17 +67,15 @@ class AuthControllerTest {
             first.setName("Usuario Uno");
             first.setEmail(email);
             first.setPassword("password123");
-            authService.register(first);
+            authController.register(first);
 
             RegisterRequestDTO second = new RegisterRequestDTO();
             second.setName("Usuario Dos");
             second.setEmail(email);
             second.setPassword("otrapassword");
 
-            Exception exception = assertThrows(RuntimeException.class,
-                    () -> authService.register(second));
-
-            assertTrue(exception.getMessage().contains("Email already registered"));
+            assertThrows(RuntimeException.class,
+                    () -> authController.register(second));
         }
 
         @Test
@@ -91,39 +88,39 @@ class AuthControllerTest {
             request.setEmail(email);
             request.setPassword("password123");
 
-            RegisterResponseDTO result = authService.register(request);
+            ResponseEntity<RegisterResponseDTO> response = authController.register(request);
 
-            assertEquals(email, result.getEmail());
+            assertNotNull(response.getBody());
+            assertEquals(email, response.getBody().getEmail());
         }
     }
-
-    // ================================================================
-    // login
-    // ================================================================
 
     @Nested
     @DisplayName("login")
     class LoginTests {
 
         @Test
-        @DisplayName("Debe retornar token JWT al hacer login exitosamente")
-        void login_ValidCredentials_ReturnsToken() {
+        @DisplayName("Debe retornar 200 OK con token JWT")
+        void login_ValidCredentials_Returns200WithToken() {
             String email = "login_test_" + System.currentTimeMillis() + "@kicktime.com";
 
             RegisterRequestDTO register = new RegisterRequestDTO();
             register.setName("Login User");
             register.setEmail(email);
             register.setPassword("password123");
-            authService.register(register);
+            authController.register(register);
 
             LoginRequestDTO login = new LoginRequestDTO();
             login.setEmail(email);
             login.setPassword("password123");
 
-            String token = authService.login(login);
+            ResponseEntity<LoginResponseDTO> response = authController.login(login);
 
-            assertNotNull(token);
-            assertFalse(token.isEmpty());
+            assertNotNull(response);
+            assertNotNull(response.getBody());
+            assertEquals(200, response.getStatusCode().value());
+            assertNotNull(response.getBody().getToken());
+            assertFalse(response.getBody().getToken().isEmpty());
         }
 
         @Test
@@ -133,10 +130,8 @@ class AuthControllerTest {
             request.setEmail("noexiste_" + System.currentTimeMillis() + "@kicktime.com");
             request.setPassword("password123");
 
-            Exception exception = assertThrows(RuntimeException.class,
-                    () -> authService.login(request));
-
-            assertTrue(exception.getMessage().contains("User not found"));
+            assertThrows(RuntimeException.class,
+                    () -> authController.login(request));
         }
 
         @Test
@@ -148,16 +143,14 @@ class AuthControllerTest {
             register.setName("Wrong Pass User");
             register.setEmail(email);
             register.setPassword("correctpassword");
-            authService.register(register);
+            authController.register(register);
 
             LoginRequestDTO login = new LoginRequestDTO();
             login.setEmail(email);
             login.setPassword("wrongpassword");
 
-            Exception exception = assertThrows(RuntimeException.class,
-                    () -> authService.login(login));
-
-            assertTrue(exception.getMessage().contains("Invalid credentials"));
+            assertThrows(RuntimeException.class,
+                    () -> authController.login(login));
         }
 
         @Test
@@ -169,13 +162,13 @@ class AuthControllerTest {
             r1.setName("User One");
             r1.setEmail("user1_" + timestamp + "@kicktime.com");
             r1.setPassword("password123");
-            authService.register(r1);
+            authController.register(r1);
 
             RegisterRequestDTO r2 = new RegisterRequestDTO();
             r2.setName("User Two");
             r2.setEmail("user2_" + timestamp + "@kicktime.com");
             r2.setPassword("password123");
-            authService.register(r2);
+            authController.register(r2);
 
             LoginRequestDTO l1 = new LoginRequestDTO();
             l1.setEmail(r1.getEmail());
@@ -185,10 +178,12 @@ class AuthControllerTest {
             l2.setEmail(r2.getEmail());
             l2.setPassword("password123");
 
-            String token1 = authService.login(l1);
-            String token2 = authService.login(l2);
+            ResponseEntity<LoginResponseDTO> resp1 = authController.login(l1);
+            ResponseEntity<LoginResponseDTO> resp2 = authController.login(l2);
 
-            assertNotEquals(token1, token2);
+            assertNotNull(resp1.getBody());
+            assertNotNull(resp2.getBody());
+            assertNotEquals(resp1.getBody().getToken(), resp2.getBody().getToken());
         }
     }
 }

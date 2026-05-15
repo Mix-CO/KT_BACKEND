@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
@@ -20,11 +21,10 @@ import static org.junit.jupiter.api.Assertions.*;
 class TimeSlotControllerTest {
 
     @Autowired
-    private TimeSlotRepository timeSlotRepository;
+    private TimeSlotController timeSlotController;
 
-    // ================================================================
-    // getAllTimeSlots
-    // ================================================================
+    @Autowired
+    private TimeSlotRepository timeSlotRepository;
 
     @Nested
     @DisplayName("getAllTimeSlots")
@@ -33,24 +33,19 @@ class TimeSlotControllerTest {
         @Test
         @DisplayName("Debe retornar lista no nula de timeslots")
         void getAllTimeSlots_ReturnsNotNull() {
-            List<TimeSlot> result = timeSlotRepository.findAll();
-
-            assertNotNull(result);
+            ResponseEntity<List<TimeSlot>> response = timeSlotController.getAllTimeSlots();
+            assertNotNull(response);
+            assertNotNull(response.getBody());
         }
 
         @Test
         @DisplayName("Debe retornar lista con solo timeslots válidos")
         void getAllTimeSlots_ReturnsValidTimeSlots() {
-            List<TimeSlot> result = timeSlotRepository.findAll();
-
-            assertNotNull(result);
-            result.forEach(ts -> assertNotNull(ts.getStatus()));
+            ResponseEntity<List<TimeSlot>> response = timeSlotController.getAllTimeSlots();
+            assertNotNull(response.getBody());
+            response.getBody().forEach(ts -> assertNotNull(ts.getStatus()));
         }
     }
-
-    // ================================================================
-    // getAvailableTimeSlots
-    // ================================================================
 
     @Nested
     @DisplayName("getAvailableTimeSlots")
@@ -59,12 +54,9 @@ class TimeSlotControllerTest {
         @Test
         @DisplayName("Debe retornar solo timeslots con estado AVAILABLE")
         void getAvailableTimeSlots_ReturnsOnlyAvailable() {
-            List<TimeSlot> result = timeSlotRepository.findAll().stream()
-                    .filter(ts -> ts.getStatus() == TimeSlotStatus.AVAILABLE)
-                    .toList();
-
-            assertNotNull(result);
-            result.forEach(ts ->
+            ResponseEntity<List<TimeSlot>> response = timeSlotController.getAvailableTimeSlots();
+            assertNotNull(response.getBody());
+            response.getBody().forEach(ts ->
                     assertEquals(TimeSlotStatus.AVAILABLE, ts.getStatus())
             );
         }
@@ -72,24 +64,45 @@ class TimeSlotControllerTest {
         @Test
         @DisplayName("Debe retornar lista no nula de timeslots disponibles")
         void getAvailableTimeSlots_ReturnsNotNull() {
-            List<TimeSlot> result = timeSlotRepository.findAll().stream()
-                    .filter(ts -> ts.getStatus() == TimeSlotStatus.AVAILABLE)
-                    .toList();
-
-            assertNotNull(result);
+            ResponseEntity<List<TimeSlot>> response = timeSlotController.getAvailableTimeSlots();
+            assertNotNull(response);
+            assertNotNull(response.getBody());
         }
 
         @Test
-        @DisplayName("Debe retornar lista sin timeslots LOCKED ni RESERVED")
-        void getAvailableTimeSlots_NoLockedOrReserved() {
-            List<TimeSlot> result = timeSlotRepository.findAll().stream()
-                    .filter(ts -> ts.getStatus() == TimeSlotStatus.AVAILABLE)
-                    .toList();
+        @DisplayName("Debe excluir timeslots LOCKED del resultado")
+        void getAvailableTimeSlots_ExcludesLockedSlots() {
+            TimeSlot locked = new TimeSlot();
+            locked.setStatus(TimeSlotStatus.LOCKED);
+            TimeSlot savedLocked = timeSlotRepository.save(locked);
 
-            result.forEach(ts -> {
-                assertNotEquals(TimeSlotStatus.LOCKED, ts.getStatus());
-                assertNotEquals(TimeSlotStatus.RESERVED, ts.getStatus());
-            });
+            try {
+                ResponseEntity<List<TimeSlot>> response = timeSlotController.getAvailableTimeSlots();
+                assertNotNull(response.getBody());
+                boolean containsLocked = response.getBody().stream()
+                        .anyMatch(ts -> ts.getStatus() == TimeSlotStatus.LOCKED);
+                assertFalse(containsLocked);
+            } finally {
+                timeSlotRepository.deleteById(savedLocked.getId());
+            }
+        }
+
+        @Test
+        @DisplayName("Debe excluir timeslots RESERVED del resultado")
+        void getAvailableTimeSlots_ExcludesReservedSlots() {
+            TimeSlot reserved = new TimeSlot();
+            reserved.setStatus(TimeSlotStatus.RESERVED);
+            TimeSlot savedReserved = timeSlotRepository.save(reserved);
+
+            try {
+                ResponseEntity<List<TimeSlot>> response = timeSlotController.getAvailableTimeSlots();
+                assertNotNull(response.getBody());
+                boolean containsReserved = response.getBody().stream()
+                        .anyMatch(ts -> ts.getStatus() == TimeSlotStatus.RESERVED);
+                assertFalse(containsReserved);
+            } finally {
+                timeSlotRepository.deleteById(savedReserved.getId());
+            }
         }
     }
 }

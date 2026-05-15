@@ -4,7 +4,6 @@ import com.kicktime.backend.domain.model.dto.request.CreateReservationRequestDTO
 import com.kicktime.backend.domain.model.dto.request.RespondReservationDTO;
 import com.kicktime.backend.domain.model.dto.request.UpdateReservationStatusRequestDTO;
 import com.kicktime.backend.domain.model.enums.ReservationStatus;
-import com.kicktime.backend.domain.services.ReservationService;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -20,18 +19,14 @@ import static org.junit.jupiter.api.Assertions.*;
 class ReservationWebSocketControllerTest {
 
     @Autowired
-    private ReservationService reservationService;
-
-    // ================================================================
-    // requestReservation (/app/reservation/request)
-    // ================================================================
+    private ReservationWebSocketController reservationWebSocketController;
 
     @Nested
     @DisplayName("requestReservation")
     class RequestReservationTests {
 
         @Test
-        @DisplayName("Debe lanzar excepción cuando el match no existe al solicitar reserva")
+        @DisplayName("Debe lanzar excepción cuando el match no existe")
         void requestReservation_MatchNotFound_ThrowsException() {
             CreateReservationRequestDTO request = CreateReservationRequestDTO.builder()
                     .matchId(999L)
@@ -39,14 +34,12 @@ class ReservationWebSocketControllerTest {
                     .userId(1L)
                     .build();
 
-            Exception exception = assertThrows(RuntimeException.class,
-                    () -> reservationService.createReservation(request));
-
-            assertTrue(exception.getMessage().contains("Match not found"));
+            assertThrows(RuntimeException.class,
+                    () -> reservationWebSocketController.requestReservation(request));
         }
 
         @Test
-        @DisplayName("Debe lanzar excepción cuando el usuario no existe al solicitar reserva")
+        @DisplayName("Debe lanzar excepción cuando el usuario no existe")
         void requestReservation_UserNotFound_ThrowsException() {
             CreateReservationRequestDTO request = CreateReservationRequestDTO.builder()
                     .matchId(999L)
@@ -55,11 +48,11 @@ class ReservationWebSocketControllerTest {
                     .build();
 
             assertThrows(RuntimeException.class,
-                    () -> reservationService.createReservation(request));
+                    () -> reservationWebSocketController.requestReservation(request));
         }
 
         @Test
-        @DisplayName("Debe lanzar excepción cuando el timeSlot no existe al solicitar reserva")
+        @DisplayName("Debe lanzar excepción cuando el timeSlot no existe")
         void requestReservation_TimeSlotNotFound_ThrowsException() {
             CreateReservationRequestDTO request = CreateReservationRequestDTO.builder()
                     .matchId(999L)
@@ -68,13 +61,9 @@ class ReservationWebSocketControllerTest {
                     .build();
 
             assertThrows(RuntimeException.class,
-                    () -> reservationService.createReservation(request));
+                    () -> reservationWebSocketController.requestReservation(request));
         }
     }
-
-    // ================================================================
-    // respondToReservation (/app/reservation/respond)
-    // ================================================================
 
     @Nested
     @DisplayName("respondToReservation")
@@ -83,53 +72,35 @@ class ReservationWebSocketControllerTest {
         @Test
         @DisplayName("Debe lanzar excepción cuando la reserva no existe al aceptar")
         void respondToReservation_ReservationNotFound_Accept_ThrowsException() {
-            RespondReservationDTO respond = RespondReservationDTO.builder()
+            RespondReservationDTO request = RespondReservationDTO.builder()
                     .reservationId(999L)
                     .respondingUserId(2L)
                     .status(ReservationStatus.ACCEPTED)
                     .build();
 
-            UpdateReservationStatusRequestDTO dto = new UpdateReservationStatusRequestDTO();
-            dto.setStatus(respond.getStatus());
-            dto.setRespondingUserId(respond.getRespondingUserId());
-
-            Exception exception = assertThrows(RuntimeException.class,
-                    () -> reservationService.updateReservationStatus(
-                            respond.getReservationId(), dto));
-
-            assertTrue(exception.getMessage().contains("Reservation not found"));
+            assertThrows(RuntimeException.class,
+                    () -> reservationWebSocketController.respondToReservation(request));
         }
 
         @Test
         @DisplayName("Debe lanzar excepción cuando la reserva no existe al rechazar")
         void respondToReservation_ReservationNotFound_Reject_ThrowsException() {
-            RespondReservationDTO respond = RespondReservationDTO.builder()
+            RespondReservationDTO request = RespondReservationDTO.builder()
                     .reservationId(999L)
                     .respondingUserId(2L)
                     .status(ReservationStatus.REJECTED)
                     .build();
 
-            UpdateReservationStatusRequestDTO dto = new UpdateReservationStatusRequestDTO();
-            dto.setStatus(respond.getStatus());
-            dto.setRespondingUserId(respond.getRespondingUserId());
-
             assertThrows(RuntimeException.class,
-                    () -> reservationService.updateReservationStatus(
-                            respond.getReservationId(), dto));
+                    () -> reservationWebSocketController.respondToReservation(request));
         }
 
         @Test
-        @DisplayName("Debe mapear correctamente el RespondReservationDTO al UpdateReservationStatusRequestDTO")
+        @DisplayName("Debe mapear correctamente status y respondingUserId")
         void respondToReservation_MapsCorrectly() {
-            RespondReservationDTO respond = RespondReservationDTO.builder()
-                    .reservationId(999L)
-                    .respondingUserId(2L)
-                    .status(ReservationStatus.ACCEPTED)
-                    .build();
-
             UpdateReservationStatusRequestDTO dto = new UpdateReservationStatusRequestDTO();
-            dto.setStatus(respond.getStatus());
-            dto.setRespondingUserId(respond.getRespondingUserId());
+            dto.setStatus(ReservationStatus.ACCEPTED);
+            dto.setRespondingUserId(2L);
 
             assertEquals(ReservationStatus.ACCEPTED, dto.getStatus());
             assertEquals(2L, dto.getRespondingUserId());

@@ -35,10 +35,11 @@ public class ReservationWebSocketService {
     private final Map<Long, ScheduledFuture<?>> activeTimers = new ConcurrentHashMap<>();
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(10);
 
-    // Franjas que ya tuvieron su coin flip — no se puede apelar dos veces
     private final Set<Long> coinFlipResolved = ConcurrentHashMap.newKeySet();
 
     private static final String TIME_SLOT_NOT_FOUND = "Time slot not found";
+    private static final String RESERVATION_NOT_FOUND = "Reservation not found";
+    private static final String COIN_FLIP_LOST = "COIN_FLIP_LOST";
 
     public void lockTimeSlot(Long timeSlotId, Long reservationId) {
         TimeSlot timeSlot = timeSlotRepository.findById(timeSlotId)
@@ -60,10 +61,10 @@ public class ReservationWebSocketService {
             if (coinFlipResolved.contains(timeSlotId)) {
                 // Ya hubo coin flip — rechazar directo sin moneda
                 Reservation newReservation = reservationRepository.findById(reservationId)
-                        .orElseThrow(() -> new RuntimeException("Reservation not found"));
+                        .orElseThrow(() -> new RuntimeException(RESERVATION_NOT_FOUND));
                 newReservation.setStatus(ReservationStatus.REJECTED);
                 reservationRepository.save(newReservation);
-                notifyTimeSlotUpdate(timeSlotId, "COIN_FLIP_LOST", reservationId);
+                notifyTimeSlotUpdate(timeSlotId, COIN_FLIP_LOST, reservationId);
             } else {
                 // Primera apelación — coin flip
                 coinFlipResolved.add(timeSlotId);
@@ -96,7 +97,7 @@ public class ReservationWebSocketService {
 
             cancelTimer(timeSlotId);
 
-            notifyTimeSlotUpdate(timeSlotId, "COIN_FLIP_LOST", currentReservation.getId());
+            notifyTimeSlotUpdate(timeSlotId, COIN_FLIP_LOST, currentReservation.getId());
 
             ScheduledFuture<?> timer = scheduler.schedule(
                     () -> expireReservation(timeSlotId, newReservationId),
@@ -109,12 +110,12 @@ public class ReservationWebSocketService {
 
         } else {
             Reservation newReservation = reservationRepository.findById(newReservationId)
-                    .orElseThrow(() -> new RuntimeException("Reservation not found"));
+                    .orElseThrow(() -> new RuntimeException(RESERVATION_NOT_FOUND));
 
             newReservation.setStatus(ReservationStatus.REJECTED);
             reservationRepository.save(newReservation);
 
-            notifyTimeSlotUpdate(timeSlotId, "COIN_FLIP_LOST", newReservationId);
+            notifyTimeSlotUpdate(timeSlotId, COIN_FLIP_LOST, newReservationId);
             notifyTimeSlotUpdate(timeSlotId, "COIN_FLIP_WON", currentReservation.getId());
         }
     }
@@ -134,7 +135,7 @@ public class ReservationWebSocketService {
         timeSlotRepository.save(timeSlot);
 
         Reservation reservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new RuntimeException("Reservation not found"));
+                .orElseThrow(() -> new RuntimeException(RESERVATION_NOT_FOUND));
 
         reservation.setStatus(ReservationStatus.ACCEPTED);
         reservationRepository.save(reservation);
@@ -153,7 +154,7 @@ public class ReservationWebSocketService {
         timeSlotRepository.save(timeSlot);
 
         Reservation reservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new RuntimeException("Reservation not found"));
+                .orElseThrow(() -> new RuntimeException(RESERVATION_NOT_FOUND));
 
         reservation.setStatus(ReservationStatus.REJECTED);
         reservationRepository.save(reservation);

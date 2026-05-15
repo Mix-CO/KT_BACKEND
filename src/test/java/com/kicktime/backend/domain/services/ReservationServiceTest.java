@@ -252,20 +252,20 @@ class ReservationServiceTest {
         }
 
         @Test
-        @DisplayName("Debe lanzar excepción cuando el timeSlot no está disponible")
+        @DisplayName("Debe lanzar excepción cuando el timeSlot ya está reservado")
         void createReservation_TimeSlotNotAvailable_ThrowsException() {
-            TimeSlot lockedSlot = TimeSlot.builder()
+            TimeSlot reservedSlot = TimeSlot.builder()
                     .id(1L)
-                    .status(TimeSlotStatus.LOCKED)
+                    .status(TimeSlotStatus.RESERVED)
                     .build();
 
             when(matchRepository.findById(1L)).thenReturn(Optional.of(match));
-            when(timeSlotRepository.findById(1L)).thenReturn(Optional.of(lockedSlot));
+            when(timeSlotRepository.findById(1L)).thenReturn(Optional.of(reservedSlot));
             when(userRepository.findById(1L)).thenReturn(Optional.of(homeCaptain));
 
             assertThatThrownBy(() -> reservationService.createReservation(createRequest))
                     .isInstanceOf(RuntimeException.class)
-                    .hasMessageContaining("TimeSlot is not available");
+                    .hasMessageContaining("TimeSlot is already reserved");
 
             verify(reservationRepository, never()).save(any());
         }
