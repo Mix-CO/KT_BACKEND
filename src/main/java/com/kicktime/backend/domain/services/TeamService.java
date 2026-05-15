@@ -70,14 +70,20 @@ public class TeamService {
         // create players if provided
         if (request.getPlayers() != null) {
             for (PlayerCreateDTO playerDTO : request.getPlayers()) {
-                User player = User.builder()
-                        .name(playerDTO.getName())
-                        .studentId(playerDTO.getStudentId())
-                        .email(playerDTO.getEmail())
-                        .password(passwordEncoder.encode(DEFAULT_PASSWORD))
-                        .role(UserRole.PLAYER)
-                        .team(team)
-                        .build();
+                Team finalTeam = team;
+                User player = userRepository.findByEmail(playerDTO.getEmail())
+                        .orElseGet(() -> User.builder()
+                                .name(playerDTO.getName())
+                                .studentId(playerDTO.getStudentId())
+                                .email(playerDTO.getEmail())
+                                .password(passwordEncoder.encode(DEFAULT_PASSWORD))
+                                .role(UserRole.PLAYER)
+                                .build());
+
+                player.setTeam(finalTeam);
+                if (player.getRole() == null) {
+                    player.setRole(UserRole.PLAYER);
+                }
                 userRepository.save(player);
             }
         }
@@ -144,15 +150,19 @@ public class TeamService {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new RuntimeException(TEAM_NOT_FOUND));
 
-        User player = User.builder()
-                .name(playerDTO.getName())
-                .studentId(playerDTO.getStudentId())
-                .email(playerDTO.getEmail())
-                .password(passwordEncoder.encode(DEFAULT_PASSWORD))
-                .role(UserRole.PLAYER)
-                .team(team)
-                .build();
+        User player = userRepository.findByEmail(playerDTO.getEmail())
+                .orElseGet(() -> User.builder()
+                        .name(playerDTO.getName())
+                        .studentId(playerDTO.getStudentId())
+                        .email(playerDTO.getEmail())
+                        .password(passwordEncoder.encode(DEFAULT_PASSWORD))
+                        .role(UserRole.PLAYER)
+                        .build());
 
+        player.setTeam(team);
+        if (player.getRole() == null) {
+            player.setRole(UserRole.PLAYER);
+        }
         userRepository.save(player);
 
         Team updatedTeam = teamRepository.findById(teamId).orElseThrow();
@@ -198,4 +208,3 @@ public class TeamService {
         teamRepository.deleteById(teamId);
     }
 }
-
