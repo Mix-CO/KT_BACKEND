@@ -1,6 +1,5 @@
 package com.kicktime.backend.api;
 
-import com.kicktime.backend.domain.model.dto.response.AiSuggestionResponseDTO;
 import com.kicktime.backend.domain.services.AiSuggestionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -15,7 +14,7 @@ public class AiSuggestionController {
     private final AiSuggestionService aiSuggestionService;
 
     @GetMapping("/suggest/{matchId}")
-    public ResponseEntity<?> suggestTimeSlot(@PathVariable Long matchId) {
+    public ResponseEntity<Object> suggestTimeSlot(@PathVariable Long matchId) {
         try {
             return ResponseEntity.ok(aiSuggestionService.suggestTimeSlot(matchId));
         } catch (RuntimeException e) {

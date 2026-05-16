@@ -131,7 +131,7 @@ public class AiSuggestionService {
 
             log.info(">>> Raw text de Groq: {}", rawText);
 
-            rawText = rawText.replaceAll("```json", "").replaceAll("```", "").trim();
+            rawText = rawText.replace("```json", "").replace("```", "").trim();
             rawText = rawText.replaceAll("\\s+", " ");
 
             Long slotId = Long.parseLong(rawText.replaceAll(".*\"slotId\":\\s*(\\d+).*", "$1"));

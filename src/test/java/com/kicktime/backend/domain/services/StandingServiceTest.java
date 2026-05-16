@@ -87,6 +87,7 @@ class StandingServiceTest {
                 .homeTeam(homeTeam)
                 .awayTeam(awayTeam)
                 .result(result)
+                .tournament(tournament)
                 .build();
     }
 
@@ -262,35 +263,50 @@ class StandingServiceTest {
     }
 
     @Test
-    void updateStandings_homeStandingNotFound_throwsException() {
+    void updateStandings_homeStandingNotFound_createsNewStanding() {
         result.setHomeScore(1);
         result.setAwayScore(0);
+
+        Standing newHomeStanding = Standing.builder()
+                .team(homeTeam)
+                .tournament(tournament)
+                .played(0).wins(0).draws(0).losses(0)
+                .goalsFor(0).goalsAgainst(0).points(0)
+                .build();
 
         when(standingRepository.findByTeamIdAndTournamentId(10L, 1L))
                 .thenReturn(Optional.empty());
+        when(standingRepository.save(any(Standing.class))).thenReturn(newHomeStanding);
+        when(standingRepository.findByTeamIdAndTournamentId(20L, 1L))
+                .thenReturn(Optional.of(awayStanding));
 
-        assertThatThrownBy(() -> standingService.updateStandingsAfterMatch(match))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("Home standing not found");
+        standingService.updateStandingsAfterMatch(match);
 
-        verify(standingRepository, never()).save(any());
+        // Verifica que se llamó save para crear el standing del home y luego para guardar ambos
+        verify(standingRepository, atLeast(2)).save(any(Standing.class));
     }
 
     @Test
-    void updateStandings_awayStandingNotFound_throwsException() {
+    void updateStandings_awayStandingNotFound_createsNewStanding() {
         result.setHomeScore(1);
         result.setAwayScore(0);
+
+        Standing newAwayStanding = Standing.builder()
+                .team(awayTeam)
+                .tournament(tournament)
+                .played(0).wins(0).draws(0).losses(0)
+                .goalsFor(0).goalsAgainst(0).points(0)
+                .build();
 
         when(standingRepository.findByTeamIdAndTournamentId(10L, 1L))
                 .thenReturn(Optional.of(homeStanding));
         when(standingRepository.findByTeamIdAndTournamentId(20L, 1L))
                 .thenReturn(Optional.empty());
+        when(standingRepository.save(any(Standing.class))).thenReturn(newAwayStanding);
 
-        assertThatThrownBy(() -> standingService.updateStandingsAfterMatch(match))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("Away standing not found");
+        standingService.updateStandingsAfterMatch(match);
 
-        verify(standingRepository, never()).save(any());
+        verify(standingRepository, atLeast(2)).save(any(Standing.class));
     }
 
     @Test
@@ -309,7 +325,6 @@ class StandingServiceTest {
         assertThat(homeStanding.getGoalsAgainst()).isEqualTo(1);
         assertThat(awayStanding.getGoalsFor()).isEqualTo(1);
         assertThat(awayStanding.getGoalsAgainst()).isEqualTo(3);
-
         assertThat(homeStanding.getPlayed()).isEqualTo(1);
         assertThat(awayStanding.getPlayed()).isEqualTo(1);
     }

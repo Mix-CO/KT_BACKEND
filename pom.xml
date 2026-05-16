@@ -21,9 +21,10 @@
     <properties>
         <java.version>21</java.version>
         <!-- SonarQube -->
-        <sonar.projectKey>kicktime-backend</sonar.projectKey>
+        <sonar.projectKey>Mix-CO_KT_BACKEND</sonar.projectKey>
         <sonar.projectName>KickTime Backend</sonar.projectName>
-        <sonar.host.url>http://localhost:9000</sonar.host.url>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <sonar.organization>la-seleccion</sonar.organization>
         <sonar.coverage.jacoco.xmlReportPaths>
             ${project.build.directory}/site/jacoco/jacoco.xml
         </sonar.coverage.jacoco.xmlReportPaths>
@@ -217,7 +218,6 @@
                         <exclude>**/BackendApplication.class</exclude>
                         <exclude>**/config/**</exclude>
                         <exclude>**/mappers/**</exclude>
-                        <exclude>**/api/**</exclude>
                     </excludes>
                 </configuration>
                 <executions>

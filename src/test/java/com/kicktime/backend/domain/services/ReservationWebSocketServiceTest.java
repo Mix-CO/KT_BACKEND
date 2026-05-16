@@ -51,8 +51,6 @@ class ReservationWebSocketServiceTest {
                 .build();
     }
 
-    // ─── lockTimeSlot ─────────────────────────────────────────────────────────
-
     @Test
     void lockTimeSlot_setsStatusToLocked_andSaves() {
         when(timeSlotRepository.findById(10L)).thenReturn(Optional.of(timeSlot));
@@ -180,8 +178,6 @@ class ReservationWebSocketServiceTest {
         verify(reservationRepository, never()).save(any());
     }
 
-    // ─── releaseTimeSlot ──────────────────────────────────────────────────────
-
     @Test
     void releaseTimeSlot_setsTimeSlotToAvailable_andSaves() {
         timeSlot.setStatus(TimeSlotStatus.LOCKED);
@@ -250,8 +246,6 @@ class ReservationWebSocketServiceTest {
         verify(reservationRepository, never()).save(any());
     }
 
-    // ─── expireReservation (private via reflexión) ────────────────────────────
-
     @Test
     void expireReservation_timeSlotNotLocked_doesNothing() throws Exception {
         timeSlot.setStatus(TimeSlotStatus.AVAILABLE);
@@ -293,5 +287,160 @@ class ReservationWebSocketServiceTest {
         @SuppressWarnings("unchecked")
         Map<String, Object> payload = (Map<String, Object>) payloadCaptor.getValue();
         assertThat(payload.get("status")).isEqualTo("EXPIRED");
+    }
+
+    @Test
+    void lockTimeSlot_timeSlotLocked_noPreviousCoinFlip_callsResolveCoinFlip() {
+        timeSlot.setStatus(TimeSlotStatus.LOCKED);
+        when(timeSlotRepository.findById(10L)).thenReturn(Optional.of(timeSlot));
+
+        Reservation currentReservation = Reservation.builder()
+                .id(99L)
+                .status(ReservationStatus.PENDING)
+                .build();
+
+        when(reservationRepository.findByTimeSlotIdAndStatus(10L, ReservationStatus.PENDING))
+                .thenReturn(java.util.List.of(currentReservation));
+        lenient().when(reservationRepository.findById(100L)).thenReturn(Optional.of(reservation));
+
+        reservationWebSocketService.lockTimeSlot(10L, 100L);
+
+        verify(messagingTemplate, atLeast(1)).convertAndSend(anyString(), any(Object.class));
+    }
+
+    @Test
+    void lockTimeSlot_timeSlotLocked_coinFlipAlreadyResolved_rejectsNewReservation() throws Exception {
+        timeSlot.setStatus(TimeSlotStatus.LOCKED);
+        when(timeSlotRepository.findById(10L)).thenReturn(Optional.of(timeSlot));
+        when(reservationRepository.findById(100L)).thenReturn(Optional.of(reservation));
+
+        // Simular que ya hubo coin flip agregando el timeSlotId al set
+        java.lang.reflect.Field field =
+                ReservationWebSocketService.class.getDeclaredField("coinFlipResolved");
+        field.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        java.util.Set<Long> coinFlipResolved =
+                (java.util.Set<Long>) field.get(reservationWebSocketService);
+        coinFlipResolved.add(10L);
+
+        reservationWebSocketService.lockTimeSlot(10L, 100L);
+
+        assertThat(reservation.getStatus()).isEqualTo(ReservationStatus.REJECTED);
+        verify(reservationRepository).save(reservation);
+
+        ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
+        verify(messagingTemplate).convertAndSend(
+                eq("/topic/timeslots/10"),
+                payloadCaptor.capture()
+        );
+        @SuppressWarnings("unchecked")
+        Map<String, Object> payload = (Map<String, Object>) payloadCaptor.getValue();
+        assertThat(payload.get("status")).isEqualTo("COIN_FLIP_LOST");
+    }
+
+    @Test
+    void lockTimeSlot_timeSlotReserved_doesNothing() {
+        timeSlot.setStatus(TimeSlotStatus.RESERVED);
+        when(timeSlotRepository.findById(10L)).thenReturn(Optional.of(timeSlot));
+
+        reservationWebSocketService.lockTimeSlot(10L, 100L);
+
+        verify(timeSlotRepository, never()).save(any());
+        verify(messagingTemplate, never()).convertAndSend(anyString(), any(Object.class));
+    }
+
+    @Test
+    void resolveCoinFlip_newReservationWins_rejectsCurrentAndNotifies() throws Exception {
+        timeSlot.setStatus(TimeSlotStatus.LOCKED);
+
+        Reservation currentReservation = Reservation.builder()
+                .id(99L)
+                .status(ReservationStatus.PENDING)
+                .build();
+
+        ReservationWebSocketService spy = spy(reservationWebSocketService);
+        doReturn(true).when(spy).coinFlip();
+
+        injectField(spy, "timeSlotRepository", timeSlotRepository);
+        injectField(spy, "reservationRepository", reservationRepository);
+        injectField(spy, "messagingTemplate", messagingTemplate);
+
+        when(timeSlotRepository.findById(10L)).thenReturn(Optional.of(timeSlot));
+        when(reservationRepository.findByTimeSlotIdAndStatus(10L, ReservationStatus.PENDING))
+                .thenReturn(java.util.List.of(currentReservation));
+        lenient().when(reservationRepository.findById(100L)).thenReturn(Optional.of(reservation));
+
+        spy.lockTimeSlot(10L, 100L);
+
+        assertThat(currentReservation.getStatus()).isEqualTo(ReservationStatus.REJECTED);
+        verify(reservationRepository).save(currentReservation);
+    }
+
+    @Test
+    void resolveCoinFlip_currentReservationWins_rejectsNewAndNotifies() throws Exception {
+        timeSlot.setStatus(TimeSlotStatus.LOCKED);
+        when(timeSlotRepository.findById(10L)).thenReturn(Optional.of(timeSlot));
+
+        Reservation currentReservation = Reservation.builder()
+                .id(99L)
+                .status(ReservationStatus.PENDING)
+                .build();
+
+        when(reservationRepository.findByTimeSlotIdAndStatus(10L, ReservationStatus.PENDING))
+                .thenReturn(java.util.List.of(currentReservation));
+        when(reservationRepository.findById(100L)).thenReturn(Optional.of(reservation));
+
+        ReservationWebSocketService spy = spy(reservationWebSocketService);
+        doReturn(false).when(spy).coinFlip();
+
+        injectField(spy, "timeSlotRepository", timeSlotRepository);
+        injectField(spy, "reservationRepository", reservationRepository);
+        injectField(spy, "messagingTemplate", messagingTemplate);
+
+        spy.lockTimeSlot(10L, 100L);
+
+        assertThat(reservation.getStatus()).isEqualTo(ReservationStatus.REJECTED);
+        verify(reservationRepository).save(reservation);
+    }
+
+    @Test
+    void resolveCoinFlip_noPendingReservation_treatsAsAvailable() throws Exception {
+        timeSlot.setStatus(TimeSlotStatus.LOCKED);
+
+        TimeSlot freshSlot = TimeSlot.builder()
+                .id(10L)
+                .status(TimeSlotStatus.LOCKED)
+                .build();
+
+        when(timeSlotRepository.findById(10L))
+                .thenReturn(Optional.of(freshSlot));
+        when(reservationRepository.findByTimeSlotIdAndStatus(10L, ReservationStatus.PENDING))
+                .thenReturn(java.util.List.of());
+
+        // Segunda llamada a findById en lockTimeSlot recursivo — franja ya AVAILABLE
+        TimeSlot availableSlot = TimeSlot.builder()
+                .id(10L)
+                .status(TimeSlotStatus.AVAILABLE)
+                .build();
+        when(timeSlotRepository.findById(10L))
+                .thenReturn(Optional.of(freshSlot))
+                .thenReturn(Optional.of(availableSlot));
+
+        reservationWebSocketService.lockTimeSlot(10L, 100L);
+
+        verify(timeSlotRepository, atLeast(1)).save(any());
+    }
+
+    @Test
+    void coinFlip_returnsBoolean() {
+        boolean result = reservationWebSocketService.coinFlip();
+        assertThat(result).isIn(true, false);
+    }
+
+    private void injectField(Object target, String fieldName, Object value) throws Exception {
+        java.lang.reflect.Field field =
+                ReservationWebSocketService.class.getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(target, value);
     }
 }

@@ -4,8 +4,6 @@ import com.kicktime.backend.domain.model.enums.MatchStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Getter
 @Setter

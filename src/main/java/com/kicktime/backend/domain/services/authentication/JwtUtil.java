@@ -9,8 +9,13 @@ import javax.crypto.SecretKey;
 import java.security.Key;
 import java.util.Date;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Component
 public class JwtUtil {
+    private static final Logger log = LoggerFactory.getLogger(JwtUtil.class);
+
     private static final String SECRET_KEY = "my-super-secret-key-for-kicktime-jwt-authentication-2026";
     private final Key key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
     private static final long EXPIRATION_MS = 3600000;
@@ -43,7 +48,7 @@ public class JwtUtil {
             getClaims(token);
             return true;
         } catch (Exception e) {
-            System.out.println(">>> TOKEN EXCEPTION: " + e.getClass().getName() + " - " + e.getMessage());
+            log.warn(">>> TOKEN EXCEPTION: {} - {}", e.getClass().getName(), e.getMessage());
             return false;
         }
     }

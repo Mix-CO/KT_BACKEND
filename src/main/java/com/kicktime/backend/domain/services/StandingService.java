@@ -67,6 +67,27 @@ public class StandingService {
     }
 
     /**
+     * Get or create standing for a team in a tournament
+     */
+    private Standing getOrCreateStanding(Team team, Tournament tournament) {
+        return standingRepository
+                .findByTeamIdAndTournamentId(team.getId(), tournament.getId())
+                .orElseGet(() -> standingRepository.save(
+                        Standing.builder()
+                                .team(team)
+                                .tournament(tournament)
+                                .played(0)
+                                .wins(0)
+                                .draws(0)
+                                .losses(0)
+                                .goalsFor(0)
+                                .goalsAgainst(0)
+                                .points(0)
+                                .build()
+                ));
+    }
+
+    /**
      * Update standings after match
      */
     public void updateStandingsAfterMatch(Match match) {
@@ -77,19 +98,10 @@ public class StandingService {
             return;
         }
 
-        Standing homeStanding = standingRepository
-                .findByTeamIdAndTournamentId(
-                        match.getHomeTeam().getId(),
-                        match.getHomeTeam().getTournament().getId()
-                )
-                .orElseThrow(() -> new RuntimeException("Home standing not found"));
+        Tournament tournament = match.getTournament();
 
-        Standing awayStanding = standingRepository
-                .findByTeamIdAndTournamentId(
-                        match.getAwayTeam().getId(),
-                        match.getAwayTeam().getTournament().getId()
-                )
-                .orElseThrow(() -> new RuntimeException("Away standing not found"));
+        Standing homeStanding = getOrCreateStanding(match.getHomeTeam(), tournament);
+        Standing awayStanding = getOrCreateStanding(match.getAwayTeam(), tournament);
 
         int homeScore = result.getHomeScore();
         int awayScore = result.getAwayScore();
@@ -104,24 +116,16 @@ public class StandingService {
         awayStanding.setGoalsAgainst(awayStanding.getGoalsAgainst() + homeScore);
 
         if (homeScore > awayScore) {
-
             homeStanding.setWins(homeStanding.getWins() + 1);
             awayStanding.setLosses(awayStanding.getLosses() + 1);
-
             homeStanding.setPoints(homeStanding.getPoints() + 3);
-
         } else if (awayScore > homeScore) {
-
             awayStanding.setWins(awayStanding.getWins() + 1);
             homeStanding.setLosses(homeStanding.getLosses() + 1);
-
             awayStanding.setPoints(awayStanding.getPoints() + 3);
-
         } else {
-
             homeStanding.setDraws(homeStanding.getDraws() + 1);
             awayStanding.setDraws(awayStanding.getDraws() + 1);
-
             homeStanding.setPoints(homeStanding.getPoints() + 1);
             awayStanding.setPoints(awayStanding.getPoints() + 1);
         }

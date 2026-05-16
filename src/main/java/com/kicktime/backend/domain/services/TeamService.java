@@ -144,7 +144,7 @@ public class TeamService {
     /**
      * Add player to team
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public TeamResponseDTO addPlayerToTeam(Long teamId, PlayerCreateDTO playerDTO) {
 
         Team team = teamRepository.findById(teamId)
