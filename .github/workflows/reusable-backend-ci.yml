@@ -43,12 +43,17 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_USERNAME: ${{ secrets.SUPABASE_USERNAME }}
-          SUPABASE_PASSWORD: ${{ secrets.SUPABASE_PASSWORD }}
+          # Datasource
+          SPRING_DATASOURCE_URL: jdbc:postgresql://${{ secrets.SUPABASE_URL }}:5432/postgres
+          SPRING_DATASOURCE_USERNAME: ${{ secrets.SUPABASE_USERNAME }}
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.SUPABASE_PASSWORD }}
+          # Groq
+          GROQ_API_KEY: test-dummy-key-not-real
+          # Google OAuth2
+          GOOGLE_CLIENT_ID: test-dummy-client-id
+          GOOGLE_CLIENT_SECRET: test-dummy-client-secret
         run: |
           ./mvnw verify sonar:sonar \
-            -Dspring.profiles.active=test \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.organization=la-seleccion \
             -Dsonar.projectKey=Mix-CO_KT_BACKEND \
