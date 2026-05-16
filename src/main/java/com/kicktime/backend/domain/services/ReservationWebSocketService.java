@@ -41,6 +41,8 @@ public class ReservationWebSocketService {
     private static final String RESERVATION_NOT_FOUND = "Reservation not found";
     private static final String COIN_FLIP_LOST = "COIN_FLIP_LOST";
 
+    private static final java.util.Random RANDOM = new java.util.Random();
+
     public void lockTimeSlot(Long timeSlotId, Long reservationId) {
         TimeSlot timeSlot = timeSlotRepository.findById(timeSlotId)
                 .orElseThrow(() -> new RuntimeException(TIME_SLOT_NOT_FOUND));
@@ -121,7 +123,7 @@ public class ReservationWebSocketService {
     }
 
     boolean coinFlip() {
-        return new java.util.Random().nextBoolean();
+        return RANDOM.nextBoolean();
     }
 
     public void confirmReservation(Long timeSlotId, Long reservationId) {

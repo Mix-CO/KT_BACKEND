@@ -14,9 +14,13 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Component
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
+    private static final Logger log = LoggerFactory.getLogger(JwtFilter.class);
 
     private final JwtUtil jwtUtil;
 
@@ -35,7 +39,7 @@ public class JwtFilter extends OncePerRequestFilter {
         String token = authHeader.substring(7);
 
         if (!jwtUtil.isTokenValid(token)) {
-            System.out.println(">>> TOKEN INVÁLIDO");
+            log.warn(">>> TOKEN INVÁLIDO");
             String origin = request.getHeader("Origin");
             if (origin != null) {
                 response.setHeader("Access-Control-Allow-Origin", origin);
@@ -45,8 +49,7 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
-        System.out.println(">>> TOKEN VÁLIDO, usuario: " + jwtUtil.extractEmail(token));
-
+        log.debug(">>> TOKEN VÁLIDO, usuario: {}", jwtUtil.extractEmail(token));
         String email = jwtUtil.extractEmail(token);
         String role = jwtUtil.extractRole(token);
 
