@@ -51,7 +51,7 @@ jobs:
             -Dspring.profiles.active=test \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.organization=la-seleccion \
-            -Dsonar.projectKey=kicktime-backend \
+            -Dsonar.projectKey=Mix-CO_KT_BACKEND \
             -Dsonar.projectName="KickTime Backend" \
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
             -Dsonar.qualitygate.wait=true
